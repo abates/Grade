@@ -25,47 +25,30 @@ public class ImportTask extends SwingWorker<Void, Void> {
                 String[] tokens = files[i].getName().split("_");
 
                 File destination = new File(folder.getAbsolutePath() + "/" + tokens[0]);
-                if (!destination.exists() && destination.mkdirs()) {
-                    logger.append("Creating directory " + destination.getPath());
-                } else {
-                    logger.append("Failed to create " + destination.getAbsolutePath() + "\n");
+                if (!destination.exists()) {
+                    if (destination.mkdirs()) {
+                        logger.append("Creating directory " + destination.getPath());
+                        String studentName = tokens[0];
+                        students.findOrCreate(studentName, destination);
+                    } else {
+                        logger.append("Failed to create " + destination.getAbsolutePath() + "\n");
+                    }
                 }
 
                 if (destination.exists()) {
                     File newFile = new File(destination.getAbsolutePath() + "/" + tokens[4]);
-                    if (files[i].renameTo(newFile)) {
-                        importFile(newFile);
-                    } else {
+                    if (!files[i].renameTo(newFile)) {
                         logger.append("Failed to rename " + files[i].getName() + "\n");
                     }
                 }
             } else if (files[i].isDirectory()) {
-                importDirectory(files[i]);
+                String studentName = files[i].getName();
+                students.findOrCreate(studentName, files[i]);
+                logger.append("Imported " + studentName);
             }
             setProgress(100 * i / (files.length - 1));
         }
 
         return null;
-    }
-
-    private void importDirectory(File directory) {
-        if (!directory.isDirectory()) {
-            return;
-        }
-
-        for (File file : directory.listFiles()) {
-            if (!file.isDirectory()) {
-                importFile(file);
-            }
-        }
-    }
-
-    private void importFile(File file) {
-        if (file.getName().endsWith(".java")) {
-            String studentName = file.getParentFile().getName();
-            Student student = students.findOrCreate(studentName, file.getParentFile());
-            logger.append("Importing " + file.getName() + "\n");
-            student.addSubmission(new Submission(file));
-        }
     }
 }

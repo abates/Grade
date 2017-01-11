@@ -8,13 +8,12 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker.StateValue;
 
-public class ImportDialog extends JDialog implements ActionListener, PropertyChangeListener {
+public class ImportDialog extends GradeDialog implements ActionListener, PropertyChangeListener {
     private static final long serialVersionUID = 1L;
     private JProgressBar progressBar;
     LogField logField;
@@ -22,6 +21,7 @@ public class ImportDialog extends JDialog implements ActionListener, PropertyCha
     private StudentController students;
 
     public ImportDialog(StudentController students) {
+        super("Import");
         this.students = students;
 
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -49,7 +49,7 @@ public class ImportDialog extends JDialog implements ActionListener, PropertyCha
 
     public void setVisible(boolean b) {
         if (b == true) {
-            JFileChooser chooser = new JFileChooser();
+            JFileChooser chooser = new JFileChooser(GradePreferences.getWorkingDirectory());
             chooser.setDialogTitle("Choose a Folder");
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);

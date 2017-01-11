@@ -12,9 +12,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import co.andrewbates.grade.rubric.DefaultRubric;
+import co.andrewbates.grade.rubric.Workflow;
 
 public class MainPanel extends JPanel implements ActionListener, ListSelectionListener {
     private static final long serialVersionUID = 1L;
@@ -30,11 +32,10 @@ public class MainPanel extends JPanel implements ActionListener, ListSelectionLi
 
     public MainPanel() {
         setLayout(new GridLayout(0, 3));
-        setBorder(new EmptyBorder(0, 5, 0, 5));
 
         studentList = new JList<String>();
         studentList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        studentList.setModel(Main.students.getStudentNames());
+        studentList.setModel(MainDialog.students.getStudentNames());
         studentList.addListSelectionListener(this);
 
         studentsScrollPane = new JScrollPane(studentList);
@@ -68,6 +69,9 @@ public class MainPanel extends JPanel implements ActionListener, ListSelectionLi
                 JOptionPane.showMessageDialog(this, "A student must first be selected", "Invalid Selection",
                         JOptionPane.ERROR_MESSAGE);
                 return;
+            } else {
+                Workflow workflow = new Workflow(selectedStudent, new DefaultRubric());
+                workflow.run();
             }
             break;
         case ACTION_COMPILE_ALL:
@@ -76,7 +80,7 @@ public class MainPanel extends JPanel implements ActionListener, ListSelectionLi
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-        selectedStudent = Main.students.find(studentList.getSelectedValue());
+        selectedStudent = MainDialog.students.find(studentList.getSelectedValue());
         studentPanel.selectStudent(selectedStudent);
     }
 }

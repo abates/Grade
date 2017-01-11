@@ -1,54 +1,32 @@
 package co.andrewbates.grade.rubric;
 
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.HashSet;
+import java.io.IOException;
+import java.util.List;
 
-import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+import org.junit.runners.model.InitializationError;
 
+import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.Student;
-import co.andrewbates.grade.Submission;
+import co.andrewbates.grade.sandbox.TestSandbox;
+import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 
 public class UnitTestCriteria implements Criteria {
-    class StudentClassLoader extends ClassLoader {
-        URLClassLoader urlLoader;
-
-        StudentClassLoader(Student student) {
-            HashSet<URL> urls = new HashSet<URL>();
-            for (Submission submission : student.getSubmissions()) {
-                try {
-                    urls.add(submission.getFile().toURI().toURL());
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-            }
-            urlLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
-        }
-
-        @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
-            if (name.startsWith("org.junit")) {
-                return super.findClass(name);
-            }
-            return urlLoader.loadClass(name);
-        }
-    }
-
-    @SuppressWarnings("rawtypes")
-    Class[] testCases;
-
     @Override
-    public void grade(Student student) {
-        StudentClassLoader cl = new StudentClassLoader(student);
+    public void grade(Student student) throws IOException {
+        TestSandbox sandbox = new TestSandbox(student, GradePreferences.getTestsDirectory());
         try {
-            Class<?> clazz = cl.loadClass("org.junit.runner.JUnitCore");
-            Method runner = clazz.getMethod("runClasses", Class[].class);
-            Result result = (Result) runner.invoke(null, testCases);
-            System.out.println("Result: " + result.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
+            List<Failure> failures = sandbox.runTests();
+            if (failures.size() == 0) {
+                student.setGrade(new Score("test", 1, 1));
+            } else {
+                student.setGrade(new Score("test", 0, 1));
+
+            }
+        } catch (InitializationError | CompileException | IOException e) {
+            student.setGrade(new Score("test", 0, 1, e.getMessage()));
+        } finally {
+            sandbox.close();
         }
     }
 

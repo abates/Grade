@@ -5,13 +5,13 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 
-public class Main extends JFrame implements ActionListener {
+public class MainDialog extends GradeDialog implements ActionListener {
     private static final long serialVersionUID = 1L;
     MainPanel mainPanel;
 
     static final StudentController students = new StudentController();
 
-    public Main(String title) {
+    public MainDialog(String title) {
         super(title);
 
         MenuBar menuBar = new MenuBar();
@@ -19,13 +19,12 @@ public class Main extends JFrame implements ActionListener {
         menuBar.addActionListener(this);
 
         mainPanel = new MainPanel();
-        setContentPane(mainPanel);
-        pack();
+        add(mainPanel);
     }
 
     public static void main(String[] args) {
-        Main main = new Main("Program Grader");
-        main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        MainDialog main = new MainDialog("Program Grader");
+        main.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         main.setVisible(true);
     }
 
