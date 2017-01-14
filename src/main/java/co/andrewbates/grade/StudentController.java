@@ -4,11 +4,11 @@ import java.io.File;
 import java.util.Collection;
 import java.util.TreeMap;
 
-import javax.swing.DefaultListModel;
-import javax.swing.ListModel;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class StudentController {
-    DefaultListModel<String> studentNames = new DefaultListModel<String>();
+    ObservableList<String> studentNames = FXCollections.observableArrayList();
     TreeMap<String, Student> students = new TreeMap<String, Student>();
 
     public Collection<Student> all() {
@@ -16,7 +16,7 @@ public class StudentController {
     }
 
     public Student add(Student student) {
-        studentNames.addElement(student.getName());
+        studentNames.add(student.getName());
         students.put(student.getName(), student);
         return student;
     }
@@ -33,7 +33,7 @@ public class StudentController {
         return student;
     }
 
-    public ListModel<String> getStudentNames() {
+    public ObservableList<String> studentNames() {
         return studentNames;
     }
 }

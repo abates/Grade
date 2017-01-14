@@ -1,25 +1,22 @@
-package co.andrewbates.grade;
+package co.andrewbates.grade.rubric;
 
-import java.util.Collection;
-import java.util.HashMap;
-
-import co.andrewbates.grade.rubric.Score;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 
 public class Scoreable {
-
-    protected HashMap<String, Score> scores;
+    ObservableMap<String, Score> scores = FXCollections.observableHashMap();
 
     public Scoreable() {
         super();
-        scores = new HashMap<String, Score>();
     }
 
     public void setGrade(Score score) {
         scores.put(score.getName(), score);
     }
 
-    public Collection<Score> getScores() {
-        return scores.values();
+    public ObservableList<Score> getScores() {
+        return FXCollections.observableArrayList(scores.values());
     }
 
     public Score getScore(String criteriaName) {

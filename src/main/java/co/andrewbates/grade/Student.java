@@ -2,6 +2,8 @@ package co.andrewbates.grade;
 
 import java.io.File;
 
+import co.andrewbates.grade.rubric.Scoreable;
+
 public class Student extends Scoreable {
     private String name;
     private File dir;
