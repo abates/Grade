@@ -36,6 +36,9 @@ public class Sandbox implements AutoCloseable {
         }
         this.classLoader = new ClassLoader(this);
         this.compiler = ToolProvider.getSystemJavaCompiler();
+        if (this.compiler == null) {
+        	throw new RuntimeException("The JRE does not include a compiler!");
+        }
     }
 
     private void deleteAll(File dir) {
