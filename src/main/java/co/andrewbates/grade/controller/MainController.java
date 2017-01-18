@@ -1,5 +1,7 @@
 package co.andrewbates.grade.controller;
 
+import java.io.File;
+
 import org.controlsfx.dialog.ExceptionDialog;
 import org.controlsfx.dialog.ProgressDialog;
 
@@ -23,6 +25,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 
 public class MainController {
@@ -45,13 +48,16 @@ public class MainController {
     TextArea scoreOutput;
 
     private Student selectedStudent;
+    private File testDirectory;
 
     @FXML
     protected void handleGradeSelected(ActionEvent event) {
         if (selectedStudent == null) {
             new Alert(AlertType.ERROR, "A student must be selected first", ButtonType.OK).showAndWait();
+        } else if (testDirectory == null) {
+            new Alert(AlertType.ERROR, "No tests have been loaded yet", ButtonType.OK).showAndWait();
         } else {
-            GradeTask task = new GradeTask(selectedStudent, new DefaultRubric());
+            GradeTask task = new GradeTask(selectedStudent, new DefaultRubric(testDirectory));
             task.setOnFailed((state) -> {
                 System.err.println("Failed: " + task.getException());
                 task.getException().printStackTrace(System.err);
@@ -74,26 +80,30 @@ public class MainController {
 
     @FXML
     protected void handleGradeAll(ActionEvent event) {
-        GradeAllTask task = new GradeAllTask(Main.students.students(), new DefaultRubric());
-        task.setOnFailed((state) -> {
-            System.err.println("Failed: " + task.getException());
-            task.getException().printStackTrace(System.err);
-            new ExceptionDialog(task.getException()).showAndWait();
-        });
+        if (testDirectory == null) {
+            new Alert(AlertType.ERROR, "No tests have been loaded yet", ButtonType.OK).showAndWait();
+        } else {
+            GradeAllTask task = new GradeAllTask(Main.students.students(), new DefaultRubric(testDirectory));
+            task.setOnFailed((state) -> {
+                System.err.println("Failed: " + task.getException());
+                task.getException().printStackTrace(System.err);
+                new ExceptionDialog(task.getException()).showAndWait();
+            });
 
-        task.setOnSucceeded((state) -> {
-            if (selectedStudent != null) {
-                handleSelectedStudent(selectedStudent.getName());
-            }
-        });
+            task.setOnSucceeded((state) -> {
+                if (selectedStudent != null) {
+                    handleSelectedStudent(selectedStudent.getName());
+                }
+            });
 
-        Thread thread = new Thread(task);
-        thread.setDaemon(true);
-        thread.start();
+            Thread thread = new Thread(task);
+            thread.setDaemon(true);
+            thread.start();
 
-        ProgressDialog compileDialog = new ProgressDialog(task);
-        compileDialog.initModality(Modality.APPLICATION_MODAL);
-        compileDialog.show();
+            ProgressDialog compileDialog = new ProgressDialog(task);
+            compileDialog.initModality(Modality.APPLICATION_MODAL);
+            compileDialog.show();
+        }
     }
 
     @FXML
@@ -108,7 +118,14 @@ public class MainController {
 
     @FXML
     protected void handleLoadTests(ActionEvent event) {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Import Folder");
+        chooser.setInitialDirectory(GradePreferences.testDirectory());
 
+        testDirectory = chooser.showDialog(studentList.getScene().getWindow());
+        if (testDirectory != null) {
+            GradePreferences.setTestDirectory(testDirectory.getParentFile());
+        }
     }
 
     protected void handleSelectedStudent(String studentName) {

@@ -2,7 +2,6 @@ package co.andrewbates.grade.controller;
 
 import org.controlsfx.dialog.ExceptionDialog;
 
-import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.ImportWizard;
 import co.andrewbates.grade.control.WizardPane.EnteringEvent;
 import co.andrewbates.grade.task.ImportTask;
@@ -24,7 +23,6 @@ public class ImportProgressController {
     void handleEntering(EnteringEvent event) {
         wizard = (ImportWizard) event.getWizard();
         wizard.setInvalid(true);
-        GradePreferences.setImportDirectory(wizard.getSourceDirectory().getParentFile());
         ImportTask task = new ImportTask(wizard.getSourceDirectory());
         progress.progressProperty().bind(task.progressProperty());
         log.textProperty().bind(task.valueProperty());

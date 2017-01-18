@@ -28,6 +28,7 @@ public class ImportSelectController {
 
         File selectedDirectory = chooser.showDialog(((Node) event.getTarget()).getScene().getWindow());
         if (selectedDirectory != null) {
+            GradePreferences.setImportDirectory(selectedDirectory.getParentFile());
             locationField.setText(selectedDirectory.getAbsolutePath());
         }
     }

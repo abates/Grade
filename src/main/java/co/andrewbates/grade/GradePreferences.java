@@ -1,7 +1,6 @@
 package co.andrewbates.grade;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.prefs.Preferences;
 
 import javafx.beans.value.ChangeListener;
@@ -21,10 +20,13 @@ public class GradePreferences {
         system().put("workingDirectory", file.getAbsolutePath());
     }
 
-    public static File getTestsDirectory() {
-        String wd = system().get("workingDirectory",
-                Paths.get(System.getProperty("user.dir"), "testdata", "criteria").toString());
+    public static File testDirectory() {
+        String wd = system().get("testDirectory", System.getProperty("user.dir"));
         return new File(wd);
+    }
+
+    public static void setTestDirectory(File file) {
+        system().put("testDirectory", file.getAbsolutePath());
     }
 
     public static Preferences system() {
