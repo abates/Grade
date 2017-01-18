@@ -14,19 +14,19 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="494.0" prefWidth="589.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="co.andrewbates.grade.controller.Main">
+<BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="494.0" prefWidth="601.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="co.andrewbates.grade.controller.MainController">
    <center>
-      <SplitPane dividerPositions="0.2982456140350877, 0.5" prefHeight="450.0" prefWidth="574.0" BorderPane.alignment="CENTER">
+      <SplitPane fx:id="splitPane" dividerPositions="0.5, 0.5" minWidth="-Infinity" prefHeight="450.0" prefWidth="600.0">
          <items>
             <StackPane prefHeight="150.0" prefWidth="200.0">
                <children>
-                  <ListView id="studentList" fx:id="studentList" prefHeight="200.0" prefWidth="200.0" />
+                  <ListView id="studentList" fx:id="studentList" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" />
                </children>
             </StackPane>
-            <VBox alignment="CENTER" prefHeight="419.0" prefWidth="183.0" spacing="10.0">
+            <VBox alignment="CENTER" prefHeight="419.0" prefWidth="183.0" spacing="10.0" SplitPane.resizableWithParent="false">
                <children>
-                  <Button mnemonicParsing="false" onAction="#handleCompileSelectedButtonAction" prefHeight="27.0" prefWidth="134.0" text="Compile Selected" />
-                  <Button mnemonicParsing="false" onAction="#handleCompileAllButtonAction" prefHeight="27.0" prefWidth="128.0" text="Compile All" />
+                  <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleGradeSelected" prefHeight="27.0" prefWidth="134.0" text="Grade Selected" />
+                  <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleGradeAll" prefHeight="27.0" prefWidth="134.0" text="Grade All" />
                </children>
                <padding>
                   <Insets bottom="10.0" left="20.0" right="20.0" />
@@ -38,17 +38,17 @@
                      <items>
                         <StackPane prefHeight="150.0" prefWidth="200.0">
                            <children>
-                              <TableView prefHeight="200.0" prefWidth="200.0">
+                              <TableView fx:id="scoreTable" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0">
                                  <columns>
-                                    <TableColumn prefWidth="75.0" text="Criteria" />
-                                    <TableColumn prefWidth="75.0" text="Score" />
+                                    <TableColumn fx:id="criteriaColumn" prefWidth="75.0" text="Criteria" />
+                                    <TableColumn fx:id="scoreColumn" prefWidth="75.0" text="Score" />
                                  </columns>
                               </TableView>
                            </children>
                         </StackPane>
                         <StackPane prefHeight="150.0" prefWidth="200.0">
                            <children>
-                              <TextArea prefHeight="200.0" prefWidth="200.0" />
+                              <TextArea fx:id="scoreOutput" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" />
                            </children>
                         </StackPane>
                      </items>
@@ -63,7 +63,8 @@
          <menus>
             <Menu mnemonicParsing="false" text="File">
                <items>
-                  <MenuItem mnemonicParsing="false" onAction="#importMenuItemAction" text="Import" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleImport" text="Import" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleLoadTests" text="Load Tests" />
                   <MenuItem mnemonicParsing="false" text="Close" />
                </items>
             </Menu>

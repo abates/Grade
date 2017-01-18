@@ -6,8 +6,13 @@
   <name>Grade</name>
   <description>A utility to help grade CS assignments</description>
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
+    <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+    <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -15,6 +20,14 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+      	<groupId>com.zenjava</groupId>
+      	<artifactId>javafx-maven-plugin</artifactId>
+     	  <configuration>
+          <mainClass>co.andrewbates.grade.Main</mainClass>
+          <vendor>Andrew Bates Consulting, LLC</vendor>
         </configuration>
       </plugin>
     </plugins>
@@ -28,5 +41,10 @@
   		<artifactId>controlsfx</artifactId>
   		<version>8.40.12</version>
   	</dependency>
+		<dependency>
+	    <groupId>junit</groupId>
+	    <artifactId>junit</artifactId>
+	    <version>4.12</version>
+		</dependency>
   </dependencies>
 </project>

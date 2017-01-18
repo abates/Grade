@@ -3,7 +3,6 @@ package co.andrewbates.grade;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -11,11 +10,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        GradePreferences.bindUIPreferences(primaryStage);
+        GradePreferences.bindWindow("Main", primaryStage);
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/resources/fxml/Main.fxml"));
-        BorderPane borderPane = loader.load();
-        Scene scene = new Scene(borderPane, 560, 240);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/Main.fxml"));
+        Scene scene = new Scene(loader.load());
         primaryStage.setScene(scene);
         primaryStage.show();
     }

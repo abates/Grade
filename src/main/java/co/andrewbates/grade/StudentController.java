@@ -36,4 +36,8 @@ public class StudentController {
     public ObservableList<String> studentNames() {
         return studentNames;
     }
+
+    public ObservableList<Student> students() {
+        return FXCollections.observableArrayList(students.values());
+    }
 }

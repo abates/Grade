@@ -7,10 +7,9 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import org.controlsfx.dialog.WizardPane?>
+<?import co.andrewbates.grade.control.WizardPane?>
 
-
-<WizardPane headerText="Import Files" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+<WizardPane onEntering="#handleEntering" headerText="Import Files" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="co.andrewbates.grade.controller.ImportSelectController">
    <content>
       <GridPane alignment="CENTER" hgap="10.0" vgap="10.0">
         <columnConstraints>
@@ -29,9 +28,9 @@
          <children>
             <Label text="Choose a source directory" GridPane.columnSpan="2147483647" />
             <Label text="Location" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
-            <Label textFill="#bf0018" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" />
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Button mnemonicParsing="false" text="Browse" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+            <Label fx:id="errorText" textFill="#bf0018" GridPane.columnSpan="2147483647" GridPane.rowIndex="2" />
+            <TextField fx:id="locationField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Button mnemonicParsing="false" onAction="#handleBrowse" text="Browse" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
          </children>
       </GridPane>
    </content>

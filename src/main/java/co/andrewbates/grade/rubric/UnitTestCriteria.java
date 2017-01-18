@@ -13,9 +13,10 @@ import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 
 public class UnitTestCriteria implements Criteria {
     @Override
-    public void grade(Student student) throws IOException {
-        TestSandbox sandbox = new TestSandbox(student, GradePreferences.getTestsDirectory());
+    public void grade(Student student) {
+        TestSandbox sandbox = null;
         try {
+            sandbox = new TestSandbox(student, GradePreferences.getTestsDirectory());
             List<Failure> failures = sandbox.runTests();
             if (failures.size() == 0) {
                 student.setGrade(new Score("test", 1, 1));
@@ -26,7 +27,13 @@ public class UnitTestCriteria implements Criteria {
         } catch (InitializationError | CompileException | IOException e) {
             student.setGrade(new Score("test", 0, 1, e.getMessage()));
         } finally {
-            sandbox.close();
+            try {
+                if (sandbox != null) {
+                    sandbox.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+            }
         }
     }
 

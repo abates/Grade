@@ -12,7 +12,10 @@ public class SecurityManager extends java.lang.SecurityManager {
     @Override
     public void checkPermission(Permission perm) {
         if (perm instanceof RuntimePermission) {
-            if ("getProtectionDomain".equals(perm.getName())) {
+            switch (perm.getName()) {
+            case "getProtectionDomain":
+                return;
+            case "getClassLoader":
                 return;
             }
         } else if (perm instanceof SecurityPermission) {
