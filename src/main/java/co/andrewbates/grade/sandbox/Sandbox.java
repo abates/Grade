@@ -9,8 +9,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
+import com.sun.tools.javac.api.JavacTool;
 
 import co.andrewbates.grade.Student;
 import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
@@ -18,7 +17,7 @@ import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 public class Sandbox implements AutoCloseable {
     protected ClassLoader classLoader;
     protected File sandboxDir;
-    private JavaCompiler compiler;
+    private JavacTool compiler;
 
     static {
         System.setSecurityManager(new SecurityManager());
@@ -29,15 +28,17 @@ public class Sandbox implements AutoCloseable {
         this(student.getDir());
     }
 
+    @SuppressWarnings("deprecation")
     public Sandbox(File... sandboxDirs) throws IOException {
         this.sandboxDir = Files.createTempDirectory(null).toFile();
         for (File sandboxDir : sandboxDirs) {
             copy(sandboxDir, this.sandboxDir);
         }
         this.classLoader = new ClassLoader(this);
-        this.compiler = ToolProvider.getSystemJavaCompiler();
+        this.compiler = new JavacTool();
+
         if (this.compiler == null) {
-        	throw new RuntimeException("The JRE does not include a compiler!");
+            throw new RuntimeException("The JRE does not include a compiler!");
         }
     }
 
