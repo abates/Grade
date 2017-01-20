@@ -29,7 +29,9 @@
      	  <configuration>
           <mainClass>co.andrewbates.grade.Main</mainClass>
           <vendor>Andrew Bates Consulting, LLC</vendor>
-        </configuration>
+          <needShortcut>true</needShortcut>
+          <needMenu>true</needMenu>
+         </configuration>
       </plugin>
     </plugins>
   </build>
