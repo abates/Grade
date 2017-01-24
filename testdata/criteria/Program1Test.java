@@ -27,5 +27,10 @@ public class Program1Test {
       assertEquals(test.result, Program1.sum(test.i1, test.i2));
     }
   }
+  
+  @Test
+  public void testAllLessAgain() {
+      assertEquals(true, true);
+  }
 }
 
