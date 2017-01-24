@@ -131,6 +131,7 @@ public class MainController {
     protected void handleSelectedStudent(String studentName) {
         selectedStudent = Main.students.find(studentName);
         scoreTable.setItems(selectedStudent.getScores());
+        scoreOutput.setText("");
     }
 
     public void initialize() {
