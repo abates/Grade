@@ -40,12 +40,15 @@ public class TestSandboxTest {
                 }
 
                 if ("true".equals(testProps.getProperty("securityViolation"))) {
-                    System.err.println(results.getFailures());
-                    fail("Expected Security Exception for " + studentDir.getName());
-                }
-            } catch (SecurityException e) {
-                if (!"true".equals(testProps.getProperty("securityViolation"))) {
-                    fail("Test failed for " + studentDir.getName() + ":\n" + e);
+                    boolean found = false;
+                    for (Failure failure : results.getFailures()) {
+                        if (failure.getException() instanceof SecurityException) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        fail("Expected Security Exception for " + studentDir.getName());
+                    }
                 }
             } catch (CompileException e) {
                 if ("true".equals(testProps.getProperty("compiles"))) {
