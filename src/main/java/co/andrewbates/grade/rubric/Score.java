@@ -21,8 +21,8 @@ public class Score {
         return name;
     }
 
-    public double getScore() {
-        return (double) score / range;
+    public String getScore() {
+        return "" + score + "/" + range;
     }
 
     public int getRange() {

@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -29,19 +28,19 @@ public class TestSandboxTest {
             testProps.load(new FileInputStream(propsPath.toFile()));
             TestSandbox sandbox = new TestSandbox(studentDir, testDir);
             try {
-                List<Failure> failures = sandbox.runTests();
-                if (failures.size() > 0 && testProps.getProperty("testsPass").equals("true")) {
+                TestResults results = sandbox.runTests();
+                if (results.getFailures().size() > 0 && testProps.getProperty("testsPass").equals("true")) {
                     StringBuilder message = new StringBuilder();
-                    for (Failure failure : failures) {
+                    for (Failure failure : results.getFailures()) {
                         message.append(failure + "\n");
                     }
                     fail("Expected tests to pass for " + studentDir.getName() + "\n" + message);
-                } else if (failures.size() == 0 && !"true".equals(testProps.getProperty("testsPass"))) {
+                } else if (results.getFailures().size() == 0 && !"true".equals(testProps.getProperty("testsPass"))) {
                     fail("Expected tests to fail for " + studentDir.getName());
                 }
 
                 if ("true".equals(testProps.getProperty("securityViolation"))) {
-                    System.err.println(failures);
+                    System.err.println(results.getFailures());
                     fail("Expected Security Exception for " + studentDir.getName());
                 }
             } catch (SecurityException e) {

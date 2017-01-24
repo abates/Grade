@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -21,6 +22,7 @@ public class TestSandbox extends Sandbox {
         SecurityException securityException;
         Class<?>[] testClasses;
         List<Failure> failures = new ArrayList<Failure>();
+        int count;
 
         TestSuite(Class<?>[] testClasses) {
             this.testClasses = testClasses;
@@ -38,7 +40,8 @@ public class TestSandbox extends Sandbox {
 
                 JUnitCore junit = new JUnitCore();
                 junit.addListener(this);
-                junit.run(suite);
+                Result result = junit.run(suite);
+                count = result.getRunCount();
             } catch (InitializationError e) {
                 throw new RuntimeException(e);
             }
@@ -70,7 +73,7 @@ public class TestSandbox extends Sandbox {
         super(sandboxDirs);
     }
 
-    public List<Failure> runTests() throws CompileException, IOException, InitializationError {
+    public TestResults runTests() throws CompileException, IOException, InitializationError {
         return runTests(getTestClasses(compileFiles()));
     }
 
@@ -87,19 +90,18 @@ public class TestSandbox extends Sandbox {
         return testClasses;
     }
 
-    public List<Failure> runTests(List<Class<?>> testClasses) throws IOException, InitializationError {
+    public TestResults runTests(List<Class<?>> testClasses) throws IOException, InitializationError {
         return runTests(testClasses.toArray(new Class<?>[testClasses.size()]));
     }
 
-    public List<Failure> runTests(Class<?>[] testClasses) throws InitializationError {
+    public TestResults runTests(Class<?>[] testClasses) throws InitializationError {
         TestSuite suite = new TestSuite(testClasses);
         run(suite);
 
-        for (Failure failure : suite.failures) {
-            if (failure.getException() instanceof SecurityException) {
-                throw (SecurityException) failure.getException();
-            }
-        }
-        return suite.failures;
+        TestResults results = new TestResults();
+        results.failures = suite.failures;
+        results.testCount = suite.count;
+
+        return results;
     }
 }
