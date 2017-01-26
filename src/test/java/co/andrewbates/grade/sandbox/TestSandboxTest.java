@@ -29,13 +29,13 @@ public class TestSandboxTest {
             TestSandbox sandbox = new TestSandbox(studentDir, testDir);
             try {
                 TestResults results = sandbox.runTests();
-                if (results.getFailures().size() > 0 && testProps.getProperty("testsPass").equals("true")) {
+                if (results.getFailedCount() > 0 && testProps.getProperty("testsPass").equals("true")) {
                     StringBuilder message = new StringBuilder();
                     for (Failure failure : results.getFailures()) {
                         message.append(failure + "\n");
                     }
                     fail("Expected tests to pass for " + studentDir.getName() + "\n" + message);
-                } else if (results.getFailures().size() == 0 && !"true".equals(testProps.getProperty("testsPass"))) {
+                } else if (results.getFailedCount() == 0 && !"true".equals(testProps.getProperty("testsPass"))) {
                     fail("Expected tests to fail for " + studentDir.getName());
                 }
 

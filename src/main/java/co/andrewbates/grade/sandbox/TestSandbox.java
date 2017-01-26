@@ -6,8 +6,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -21,8 +21,7 @@ public class TestSandbox extends Sandbox {
     class TestSuite extends RunListener implements Runnable {
         SecurityException securityException;
         Class<?>[] testClasses;
-        List<Failure> failures = new ArrayList<Failure>();
-        int count;
+        TestResults results = new TestResults();
 
         TestSuite(Class<?>[] testClasses) {
             this.testClasses = testClasses;
@@ -40,16 +39,20 @@ public class TestSandbox extends Sandbox {
 
                 JUnitCore junit = new JUnitCore();
                 junit.addListener(this);
-                Result result = junit.run(suite);
-                count = result.getRunCount();
+                junit.run(suite);
             } catch (InitializationError e) {
                 throw new RuntimeException(e);
             }
         }
 
         @Override
+        public void testFinished(Description description) throws Exception {
+            results.add(new TestResult(description));
+        }
+
+        @Override
         public void testFailure(Failure failure) throws Exception {
-            failures.add(failure);
+            results.add(new TestResult(failure));
         }
     }
 
@@ -98,9 +101,7 @@ public class TestSandbox extends Sandbox {
         TestSuite suite = new TestSuite(testClasses);
         run(suite);
 
-        TestResults results = new TestResults();
-        results.failures = suite.failures;
-        results.testCount = suite.count;
+        TestResults results = suite.results;
 
         return results;
     }

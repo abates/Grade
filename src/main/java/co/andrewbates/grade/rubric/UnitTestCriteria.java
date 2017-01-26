@@ -24,7 +24,7 @@ public class UnitTestCriteria implements Criteria {
             sandbox = new TestSandbox(student, testDirectory);
             TestResults results = sandbox.runTests();
             int count = results.getTestCount();
-            int score = count - results.getFailures().size();
+            int score = results.getPassedCount();
             String message = results.getMessage();
             student.setGrade(new Score("test", score, count, message));
         } catch (InitializationError | CompileException | IOException e) {
