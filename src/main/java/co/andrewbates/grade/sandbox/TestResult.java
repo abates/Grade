@@ -5,21 +5,15 @@ import org.junit.runner.notification.Failure;
 
 public class TestResult {
 
-    private String message;
     private Description description;
     private Failure failure;
 
     public TestResult(Description description) {
-        this(description, "Passed");
-    }
-
-    public TestResult(Description description, String message) {
         this.description = description;
-        this.message = message;
     }
 
     public TestResult(Failure failure) {
-        this(failure.getDescription(), failure.getMessage());
+        this(failure.getDescription());
         this.failure = failure;
     }
 
@@ -50,6 +44,11 @@ public class TestResult {
 
     @Override
     public String toString() {
-        return message;
+        if (failure == null) {
+            return "Passed";
+        } else if (failure.getException() instanceof AssertionError) {
+            return failure.getMessage();
+        }
+        return failure.getException().toString();
     }
 }
