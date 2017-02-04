@@ -11,7 +11,7 @@ import java.util.List;
 
 import com.sun.tools.javac.api.JavacTool;
 
-import co.andrewbates.grade.Student;
+import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 
 public class Sandbox implements AutoCloseable {
@@ -25,7 +25,8 @@ public class Sandbox implements AutoCloseable {
     }
 
     public Sandbox(Student student) throws IOException {
-        this(student.getDir());
+        throw new RuntimeException("Need to re-implement this!");
+        // this(student.getDir());
     }
 
     @SuppressWarnings("deprecation")

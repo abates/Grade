@@ -1,110 +1,30 @@
 package co.andrewbates.grade.controller;
 
 import java.io.File;
-
-import org.controlsfx.dialog.ExceptionDialog;
-import org.controlsfx.dialog.ProgressDialog;
+import java.io.IOException;
 
 import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.ImportWizard;
-import co.andrewbates.grade.Main;
-import co.andrewbates.grade.Student;
-import co.andrewbates.grade.rubric.DefaultRubric;
-import co.andrewbates.grade.rubric.Score;
-import co.andrewbates.grade.task.GradeAllTask;
-import co.andrewbates.grade.task.GradeTask;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Modality;
 
 public class MainController {
     @FXML
-    ListView<String> studentList;
+    TabPane tabPane;
 
     @FXML
-    SplitPane splitPane;
+    CheckMenuItem viewStudentsMenuItem;
 
     @FXML
-    TableView<Score> scoreTable;
+    CheckMenuItem viewCoursesMenuItem;
 
-    @FXML
-    TableColumn<Score, String> criteriaColumn;
-
-    @FXML
-    TableColumn<Score, String> scoreColumn;
-
-    @FXML
-    TextArea scoreOutput;
-
-    private Student selectedStudent;
-    private File testDirectory;
-
-    @FXML
-    protected void handleGradeSelected(ActionEvent event) {
-        if (selectedStudent == null) {
-            new Alert(AlertType.ERROR, "A student must be selected first", ButtonType.OK).showAndWait();
-        } else if (testDirectory == null) {
-            new Alert(AlertType.ERROR, "No tests have been loaded yet", ButtonType.OK).showAndWait();
-        } else {
-            GradeTask task = new GradeTask(selectedStudent, new DefaultRubric(testDirectory));
-            task.setOnFailed((state) -> {
-                System.err.println("Failed: " + task.getException());
-                task.getException().printStackTrace(System.err);
-                new ExceptionDialog(task.getException()).showAndWait();
-            });
-
-            task.setOnSucceeded((state) -> {
-                handleSelectedStudent(selectedStudent.getName());
-            });
-
-            Thread thread = new Thread(task);
-            thread.setDaemon(true);
-            thread.start();
-
-            ProgressDialog compileDialog = new ProgressDialog(task);
-            compileDialog.initModality(Modality.APPLICATION_MODAL);
-            compileDialog.show();
-        }
-    }
-
-    @FXML
-    protected void handleGradeAll(ActionEvent event) {
-        if (testDirectory == null) {
-            new Alert(AlertType.ERROR, "No tests have been loaded yet", ButtonType.OK).showAndWait();
-        } else {
-            GradeAllTask task = new GradeAllTask(Main.students.students(), new DefaultRubric(testDirectory));
-            task.setOnFailed((state) -> {
-                System.err.println("Failed: " + task.getException());
-                task.getException().printStackTrace(System.err);
-                new ExceptionDialog(task.getException()).showAndWait();
-            });
-
-            task.setOnSucceeded((state) -> {
-                if (selectedStudent != null) {
-                    handleSelectedStudent(selectedStudent.getName());
-                }
-            });
-
-            Thread thread = new Thread(task);
-            thread.setDaemon(true);
-            thread.start();
-
-            ProgressDialog compileDialog = new ProgressDialog(task);
-            compileDialog.initModality(Modality.APPLICATION_MODAL);
-            compileDialog.show();
-        }
-    }
+    Tab studentsTab;
+    Tab coursesTab;
 
     @FXML
     protected void handleImport(ActionEvent event) {
@@ -122,36 +42,36 @@ public class MainController {
         chooser.setTitle("Import Folder");
         chooser.setInitialDirectory(GradePreferences.testDirectory());
 
-        testDirectory = chooser.showDialog(studentList.getScene().getWindow());
+        File testDirectory = chooser.showDialog(tabPane.getScene().getWindow());
         if (testDirectory != null) {
             GradePreferences.setTestDirectory(testDirectory.getParentFile());
         }
     }
 
-    protected void handleSelectedStudent(String studentName) {
-        selectedStudent = Main.students.find(studentName);
-        scoreTable.setItems(selectedStudent.getScores());
-        scoreOutput.setText("");
-    }
+    public void initialize() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/StudentsTab.fxml"));
 
-    public void initialize() {
-        studentList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        studentList.setItems(co.andrewbates.grade.Main.students.studentNames());
-        studentList.getSelectionModel().selectedItemProperty().addListener((observable, oldName, studentName) -> {
-            handleSelectedStudent(studentName);
-        });
+        studentsTab = new Tab("Students");
+        studentsTab.setContent(loader.load());
 
-        scoreTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        scoreTable.getSelectionModel().selectedItemProperty().addListener((observable, old, score) -> {
-            if (score != null) {
-                scoreOutput.setText(score.getMessage());
+        loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/CoursesTab.fxml"));
+        coursesTab = new Tab("Courses");
+        coursesTab.setContent(loader.load());
+
+        viewStudentsMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                tabPane.getTabs().add(studentsTab);
+            } else {
+                tabPane.getTabs().remove(studentsTab);
             }
         });
 
-        criteriaColumn.setCellValueFactory(new PropertyValueFactory<Score, String>("name"));
-        scoreColumn.setCellValueFactory(new PropertyValueFactory<Score, String>("score"));
-
-        GradePreferences.bindSplitPane("MainSPlitPane", splitPane);
+        viewCoursesMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                tabPane.getTabs().add(coursesTab);
+            } else {
+                tabPane.getTabs().remove(coursesTab);
+            }
+        });
     }
-
 }

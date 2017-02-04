@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import org.junit.runners.model.InitializationError;
 
-import co.andrewbates.grade.Student;
+import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.sandbox.TestResults;
 import co.andrewbates.grade.sandbox.TestSandbox;
 import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
@@ -26,9 +26,9 @@ public class UnitTestCriteria implements Criteria {
             int count = results.getTestCount();
             int score = results.getPassedCount();
             String message = results.getMessage();
-            student.setGrade(new Score("test", score, count, message));
+            // student.setGrade(new Score("test", score, count, message));
         } catch (InitializationError | CompileException | IOException e) {
-            student.setGrade(new Score("test", 0, 1, e.getMessage()));
+            // student.setGrade(new Score("test", 0, 1, e.getMessage()));
         } finally {
             try {
                 if (sandbox != null) {

@@ -5,7 +5,7 @@ import java.io.IOException;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
-import co.andrewbates.grade.Student;
+import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.sandbox.Sandbox;
 import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 
@@ -20,10 +20,10 @@ public class CompileCriteria implements Criteria {
         try {
             Sandbox sandbox = new Sandbox(student);
             sandbox.compileFiles();
-            student.setGrade(new Score("compile", 1, 1));
+            // student.setGrade(new Score("compile", 1, 1));
             sandbox.close();
         } catch (CompileException | IOException e) {
-            student.setGrade(new Score("compile", 0, 1, e.getMessage()));
+            // student.setGrade(new Score("compile", 0, 1, e.getMessage()));
         }
     }
 }

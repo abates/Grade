@@ -2,7 +2,7 @@ package co.andrewbates.grade.task;
 
 import java.util.List;
 
-import co.andrewbates.grade.Student;
+import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.rubric.Criteria;
 import co.andrewbates.grade.rubric.Rubric;
 import javafx.concurrent.Task;

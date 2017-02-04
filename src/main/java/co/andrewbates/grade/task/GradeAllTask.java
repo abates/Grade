@@ -4,7 +4,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import co.andrewbates.grade.Student;
+import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.rubric.Rubric;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;

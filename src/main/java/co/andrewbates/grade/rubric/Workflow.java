@@ -2,7 +2,7 @@ package co.andrewbates.grade.rubric;
 
 import javax.swing.SwingWorker;
 
-import co.andrewbates.grade.Student;
+import co.andrewbates.grade.model.Student;
 
 public class Workflow extends SwingWorker<Void, Void> {
     private Rubric rubric;

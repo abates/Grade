@@ -1,6 +1,7 @@
 package co.andrewbates.grade;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.prefs.Preferences;
 
 import javafx.beans.value.ChangeListener;
@@ -9,6 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.stage.Window;
+import net.harawata.appdirs.AppDirsFactory;
 
 public class GradePreferences {
     public static File workingDirectory() {
@@ -125,5 +127,10 @@ public class GradePreferences {
                 });
             }
         });
+    }
+
+    public static Path dataDirectory() {
+        // TODO Have version and author pulled from properties
+        return new File(AppDirsFactory.getInstance().getUserDataDir("Grade", "0.0.1", "Andrew Bates")).toPath();
     }
 }

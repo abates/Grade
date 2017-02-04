@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+
+<TableView xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+   <columns>
+      <TableColumn prefWidth="75.0" text="Session" />
+      <TableColumn prefWidth="75.0" text="Course" />
+      <TableColumn prefWidth="75.0" text="Submissions" />
+      <TableColumn prefWidth="75.0" text="Ungraded" />
+   </columns>
+   <columnResizePolicy>
+      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+   </columnResizePolicy>
+</TableView>

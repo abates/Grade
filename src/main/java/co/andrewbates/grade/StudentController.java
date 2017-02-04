@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.TreeMap;
 
+import co.andrewbates.grade.model.Student;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -28,7 +29,7 @@ public class StudentController {
     public Student findOrCreate(String name, File dir) {
         Student student = students.get(name);
         if (student == null) {
-            student = add(new Student(name, dir));
+            student = add(new Student(name));
         }
         return student;
     }

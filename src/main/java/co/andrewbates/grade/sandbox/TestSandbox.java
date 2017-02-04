@@ -15,7 +15,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
 
-import co.andrewbates.grade.Student;
+import co.andrewbates.grade.model.Student;
 
 public class TestSandbox extends Sandbox {
     class TestSuite extends RunListener implements Runnable {
@@ -69,7 +69,8 @@ public class TestSandbox extends Sandbox {
     }
 
     public TestSandbox(Student student, File testDir) throws IOException {
-        this(student.getDir(), testDir);
+        throw new RuntimeException("Need to re-implement this");
+        // this(student.getDir(), testDir);
     }
 
     public TestSandbox(File... sandboxDirs) throws IOException {

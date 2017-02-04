@@ -1,16 +1,16 @@
-package co.andrewbates.grade;
+package co.andrewbates.grade.model;
 
-import java.io.File;
+import co.andrewbates.grade.data.BaseModel;
 
-import co.andrewbates.grade.rubric.Scoreable;
-
-public class Student extends Scoreable {
+public class Student extends BaseModel {
     private String name;
-    private File dir;
 
-    public Student(String name, File dir) {
+    public Student(String name) {
+        setName(name);
+    }
+
+    public void setName(String name) {
         this.name = name;
-        this.dir = dir;
     }
 
     public String getName() {
@@ -27,9 +27,5 @@ public class Student extends Scoreable {
 
     public boolean isValid() {
         return false;
-    }
-
-    public File getDir() {
-        return dir;
     }
 }
