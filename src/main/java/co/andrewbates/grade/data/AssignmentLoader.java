@@ -13,7 +13,11 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
 public class AssignmentLoader extends BaseModelLoader<Assignment> {
+    public final String TESTDIR_PATH = "tests";
+
     Map<UUID, ObservableList<Assignment>> assignments;
+
+    Path dir;
 
     public AssignmentLoader() {
         super(Assignment.class);
@@ -27,6 +31,7 @@ public class AssignmentLoader extends BaseModelLoader<Assignment> {
     }
 
     public Task<Void> load(Path dir) throws DataException {
+        this.dir = dir;
         final Task<Void> parent = super.load(dir);
         return new Task<Void>() {
             private void addProgress(double amount) {
@@ -45,7 +50,8 @@ public class AssignmentLoader extends BaseModelLoader<Assignment> {
                 assignments = new HashMap<UUID, ObservableList<Assignment>>();
                 ObservableList<Assignment> list = list();
                 for (int i = 0; i < list.size(); i++) {
-                    addAssignment(list.get(i));
+                    Assignment assignment = list.get(i);
+                    addAssignment(assignment);
                     updateProgress(0.5 + (0.5 * i / list.size()), 1.0);
                 }
                 updateProgress(1.0, 1.0);

@@ -53,10 +53,9 @@ public class MainController {
 
         studentsTab = new Tab("Students");
         studentsTab.setContent(loader.load());
-
-        loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/CoursesTab.fxml"));
-        coursesTab = new Tab("Courses");
-        coursesTab.setContent(loader.load());
+        studentsTab.setOnClosed(ev -> {
+            viewStudentsMenuItem.setSelected(false);
+        });
 
         viewStudentsMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
@@ -64,6 +63,13 @@ public class MainController {
             } else {
                 tabPane.getTabs().remove(studentsTab);
             }
+        });
+
+        loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/CoursesTab.fxml"));
+        coursesTab = new Tab("Courses");
+        coursesTab.setContent(loader.load());
+        coursesTab.setOnClosed(ev -> {
+            viewCoursesMenuItem.setSelected(false);
         });
 
         viewCoursesMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {

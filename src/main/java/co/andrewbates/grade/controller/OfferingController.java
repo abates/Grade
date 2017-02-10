@@ -2,11 +2,9 @@ package co.andrewbates.grade.controller;
 
 import java.io.File;
 
-import org.controlsfx.dialog.ExceptionDialog;
-import org.controlsfx.dialog.ProgressDialog;
-
 import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.Main;
+import co.andrewbates.grade.dialog.ProgressDialog;
 import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.rubric.DefaultRubric;
 import co.andrewbates.grade.rubric.Score;
@@ -24,7 +22,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Modality;
 
 public class OfferingController {
     @FXML
@@ -56,12 +53,6 @@ public class OfferingController {
             new Alert(AlertType.ERROR, "No tests have been loaded yet", ButtonType.OK).showAndWait();
         } else {
             GradeTask task = new GradeTask(selectedStudent, new DefaultRubric(testDirectory));
-            task.setOnFailed((state) -> {
-                System.err.println("Failed: " + task.getException());
-                task.getException().printStackTrace(System.err);
-                new ExceptionDialog(task.getException()).showAndWait();
-            });
-
             task.setOnSucceeded((state) -> {
                 handleSelectedStudent(selectedStudent.getName());
             });
@@ -71,7 +62,6 @@ public class OfferingController {
             thread.start();
 
             ProgressDialog compileDialog = new ProgressDialog(task);
-            compileDialog.initModality(Modality.APPLICATION_MODAL);
             compileDialog.show();
         }
     }
@@ -82,12 +72,6 @@ public class OfferingController {
             new Alert(AlertType.ERROR, "No tests have been loaded yet", ButtonType.OK).showAndWait();
         } else {
             GradeAllTask task = new GradeAllTask(Main.students.students(), new DefaultRubric(testDirectory));
-            task.setOnFailed((state) -> {
-                System.err.println("Failed: " + task.getException());
-                task.getException().printStackTrace(System.err);
-                new ExceptionDialog(task.getException()).showAndWait();
-            });
-
             task.setOnSucceeded((state) -> {
                 if (selectedStudent != null) {
                     handleSelectedStudent(selectedStudent.getName());
@@ -99,7 +83,6 @@ public class OfferingController {
             thread.start();
 
             ProgressDialog compileDialog = new ProgressDialog(task);
-            compileDialog.initModality(Modality.APPLICATION_MODAL);
             compileDialog.show();
         }
     }

@@ -95,7 +95,7 @@ public class Database {
         return schoolYearLoader.list();
     }
 
-    public ObservableList<Assignment> getAssignments(Course course) {
+    public ObservableList<Assignment> assignments(Course course) {
         return assignmentLoader.get(course);
     }
 
@@ -117,5 +117,13 @@ public class Database {
 
     public ObservableList<Course> courses() {
         return courseLoader.list();
+    }
+
+    public void create(Assignment assignment) throws IOException {
+        assignmentLoader.create(assignment);
+    }
+    
+    public void save(Assignment assignment) throws IOException {
+        assignmentLoader.save(assignment);
     }
 }

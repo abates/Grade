@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.UUID;
 
 import org.hildan.fxgson.FxGson;
 
@@ -81,7 +80,6 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
     }
 
     public void create(T object) throws IOException {
-        object.setID(UUID.randomUUID());
         list.add(object);
         save(object);
     }
@@ -95,8 +93,7 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
 
         File file = dir.toPath().resolve("model.json").toFile();
         Gson gson = FxGson.create();
-        FileWriter writer;
-        writer = new FileWriter(file);
+        FileWriter writer = new FileWriter(file);
         writer.write(gson.toJson(object));
         writer.close();
     }

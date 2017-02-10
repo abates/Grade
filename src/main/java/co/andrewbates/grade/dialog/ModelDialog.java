@@ -1,4 +1,4 @@
-package co.andrewbates.grade.control;
+package co.andrewbates.grade.dialog;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

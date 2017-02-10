@@ -5,6 +5,10 @@ import java.util.UUID;
 public abstract class BaseModel implements Model {
     private UUID id;
 
+    public BaseModel() {
+        this.id = UUID.randomUUID();
+    }
+
     @Override
     public UUID getID() {
         return id;
@@ -17,5 +21,4 @@ public abstract class BaseModel implements Model {
         }
         this.id = id;
     }
-
 }

@@ -19,7 +19,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class CourseTabController {
+public class CoursesTabController {
+
     @FXML
     TableView<Course> courseTable;
 
@@ -30,21 +31,28 @@ public class CourseTabController {
     TableView<Assignment> assignmentTable;
 
     @FXML
+    TableColumn<Assignment, String> assignmentNameColumn;
+
+    @FXML
     Button addAssignmentButton;
 
     @FXML
     Button deleteAssignmentButton;
 
-    private EditCourseController editCourseController;
+    private CourseController courseController;
 
-    private Stage editCourseDialog;
+    private AssignmentController assignmentController;
+
+    private Stage assignmentDialog;
+
+    private Stage courseDialog;
 
     @FXML
     protected void handleAddCourse(ActionEvent event) {
         Course newCourse = new Course();
-        editCourseController.setCourse(newCourse);
-        editCourseDialog.showAndWait();
-        if (editCourseController.completed()) {
+        courseController.setCourse(newCourse);
+        courseDialog.showAndWait();
+        if (courseController.completed()) {
             try {
                 Database.getInstance().create(newCourse);
             } catch (IOException e) {
@@ -59,11 +67,28 @@ public class CourseTabController {
         Course course = courseTable.getSelectionModel().getSelectedItem();
 
         if (course != null && event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
-            editCourseController.setCourse(course);
-            editCourseDialog.showAndWait();
-            if (editCourseController.completed()) {
+            courseController.setCourse(course);
+            courseDialog.showAndWait();
+            if (courseController.completed()) {
                 try {
                     Database.getInstance().save(course);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @FXML
+    void handleAssignmentClicked(MouseEvent event) {
+        Assignment assignment = assignmentTable.getSelectionModel().getSelectedItem();
+        if (assignment != null && event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
+            assignmentController.setAssignment(assignment);
+            assignmentDialog.showAndWait();
+            if (assignmentController.completed()) {
+                try {
+                    Database.getInstance().save(assignment);
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -78,25 +103,55 @@ public class CourseTabController {
 
     @FXML
     protected void handleAddAssignment(ActionEvent event) {
+        Course course = courseTable.getSelectionModel().getSelectedItem();
+        if (course != null) {
+            Assignment newAssignment = new Assignment();
+            newAssignment.setCourseID(course.getID());
+            assignmentController.setAssignment(newAssignment);
+            assignmentDialog.showAndWait();
+            if (assignmentController.completed()) {
+                try {
+                    Database.getInstance().create(newAssignment);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @FXML
     protected void handleDeleteAssignment(ActionEvent event) {
-        Database.getInstance().deleteAssignment(assignmentTable.getSelectionModel().getSelectedItem());
+        Assignment assignment = assignmentTable.getSelectionModel().getSelectedItem();
+        if (assignment != null) {
+            Database.getInstance().deleteAssignment(assignment);
+        }
     }
 
     public void initialize() {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/Course.fxml"));
         try {
-            editCourseDialog = new Stage();
-            editCourseDialog.initModality(Modality.APPLICATION_MODAL);
-            editCourseDialog.setScene(new Scene(loader.load()));
-            editCourseController = loader.<EditCourseController> getController();
+            courseDialog = new Stage();
+            courseDialog.initModality(Modality.APPLICATION_MODAL);
+            courseDialog.setScene(new Scene(loader.load()));
+            courseController = loader.<CourseController> getController();
+        } catch (IOException exception) {
+            throw new RuntimeException(exception);
+        }
+
+        loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/Assignment.fxml"));
+        try {
+            assignmentDialog = new Stage();
+            assignmentDialog.initModality(Modality.APPLICATION_MODAL);
+            assignmentDialog.setScene(new Scene(loader.load()));
+            assignmentController = loader.<AssignmentController> getController();
         } catch (IOException exception) {
             throw new RuntimeException(exception);
         }
 
         courseTable.setItems(Database.getInstance().courses());
+        addAssignmentButton.setDisable(true);
+        deleteAssignmentButton.setDisable(true);
         courseTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (nv == null) {
                 addAssignmentButton.setDisable(true);
@@ -104,12 +159,12 @@ public class CourseTabController {
                 assignmentTable.setItems(FXCollections.observableArrayList());
             } else {
                 addAssignmentButton.setDisable(false);
-                deleteAssignmentButton.setDisable(false);
-                assignmentTable.setItems(Database.getInstance().getAssignments(nv));
+                assignmentTable.setItems(Database.getInstance().assignments(nv));
             }
         });
 
         courseNameColumn.setCellValueFactory(new PropertyValueFactory<Course, String>("name"));
+
         assignmentTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (nv == null) {
                 deleteAssignmentButton.setDisable(true);
@@ -117,5 +172,6 @@ public class CourseTabController {
                 deleteAssignmentButton.setDisable(false);
             }
         });
+        assignmentNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
     }
 }
