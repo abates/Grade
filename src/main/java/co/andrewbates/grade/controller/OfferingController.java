@@ -3,7 +3,7 @@ package co.andrewbates.grade.controller;
 import java.io.File;
 
 import co.andrewbates.grade.GradePreferences;
-import co.andrewbates.grade.Main;
+import co.andrewbates.grade.data.Database;
 import co.andrewbates.grade.dialog.ProgressDialog;
 import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.rubric.DefaultRubric;
@@ -25,7 +25,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 public class OfferingController {
     @FXML
-    ListView<String> studentList;
+    ListView<Student> studentList;
 
     @FXML
     SplitPane splitPane;
@@ -54,7 +54,7 @@ public class OfferingController {
         } else {
             GradeTask task = new GradeTask(selectedStudent, new DefaultRubric(testDirectory));
             task.setOnSucceeded((state) -> {
-                handleSelectedStudent(selectedStudent.getName());
+                handleSelectedStudent(selectedStudent);
             });
 
             Thread thread = new Thread(task);
@@ -71,10 +71,10 @@ public class OfferingController {
         if (testDirectory == null) {
             new Alert(AlertType.ERROR, "No tests have been loaded yet", ButtonType.OK).showAndWait();
         } else {
-            GradeAllTask task = new GradeAllTask(Main.students.students(), new DefaultRubric(testDirectory));
+            GradeAllTask task = new GradeAllTask(Database.getInstance().students(), new DefaultRubric(testDirectory));
             task.setOnSucceeded((state) -> {
                 if (selectedStudent != null) {
-                    handleSelectedStudent(selectedStudent.getName());
+                    handleSelectedStudent(selectedStudent);
                 }
             });
 
@@ -87,17 +87,17 @@ public class OfferingController {
         }
     }
 
-    protected void handleSelectedStudent(String studentName) {
-        selectedStudent = Main.students.find(studentName);
+    protected void handleSelectedStudent(Student student) {
+        // selectedStudent = Database.getInstance().find(studentName);
         // scoreTable.setItems(selectedStudent.getScores());
         scoreOutput.setText("");
     }
 
     public void initialize() {
         studentList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        studentList.setItems(Main.students.studentNames());
-        studentList.getSelectionModel().selectedItemProperty().addListener((observable, oldName, studentName) -> {
-            handleSelectedStudent(studentName);
+        studentList.setItems(Database.getInstance().students());
+        studentList.getSelectionModel().selectedItemProperty().addListener((observable, oldName, student) -> {
+            handleSelectedStudent(student);
         });
 
         scoreTable.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);

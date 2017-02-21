@@ -3,6 +3,7 @@ package co.andrewbates.grade.data;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +13,7 @@ import org.controlsfx.dialog.ExceptionDialog;
 import co.andrewbates.grade.model.Assignment;
 import co.andrewbates.grade.model.Course;
 import co.andrewbates.grade.model.SchoolYear;
+import co.andrewbates.grade.model.Student;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
@@ -99,19 +101,20 @@ public class Database {
         return assignmentLoader.get(course);
     }
 
-    public void deleteAssignment(Assignment assignment) {
+    public void delete(Assignment assignment) throws IOException {
         assignmentLoader.delete(assignment);
-    }
-
-    public void create(Course course) throws IOException {
-        courseLoader.create(course);
     }
 
     public void save(Course course) throws IOException {
         courseLoader.save(course);
     }
 
-    public void delete(Course course) {
+    public void delete(Course course) throws IOException {
+        Iterator<Assignment> assignment = assignments(course).iterator();
+        for (;assignment.hasNext();) {
+            assignment.next();
+            assignment.remove();
+        }
         courseLoader.delete(course);
     }
 
@@ -119,11 +122,22 @@ public class Database {
         return courseLoader.list();
     }
 
-    public void create(Assignment assignment) throws IOException {
-        assignmentLoader.create(assignment);
-    }
-    
     public void save(Assignment assignment) throws IOException {
         assignmentLoader.save(assignment);
+    }
+
+    public ObservableList<Student> students() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void save(Model model) throws IOException {
+        if (model instanceof Course) {
+            save((Course)model);
+        } else if (model instanceof Assignment) {
+            save((Assignment)model);
+        } else {
+            throw new RuntimeException("Cannot handle type " + model.getClass());
+        }
     }
 }

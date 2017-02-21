@@ -8,7 +8,7 @@ import org.controlsfx.dialog.WizardPane;
 import javafx.fxml.FXMLLoader;
 
 public class ImportWizard extends Wizard {
-    File sourceDirectory;
+    private File sourceDirectory;
 
     public ImportWizard() throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/ImportSelect.fxml"));

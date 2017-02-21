@@ -6,7 +6,6 @@ public abstract class BaseModel implements Model {
     private UUID id;
 
     public BaseModel() {
-        this.id = UUID.randomUUID();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package co.andrewbates.grade;
 
+import co.andrewbates.grade.controller.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -8,7 +9,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class Main extends Application {
-    public static final StudentController students = new StudentController();
     private Stage mainStage;
 
     @Override
@@ -22,6 +22,7 @@ public class Main extends Application {
         GradePreferences.bindWindow("Main", mainStage);
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/Main.fxml"));
         Scene scene = new Scene(loader.load());
+        ((MainController) loader.getController()).setScene(scene);
         mainStage.setScene(scene);
         mainStage.showingProperty();
         mainStage.toBack();

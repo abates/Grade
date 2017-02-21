@@ -63,4 +63,8 @@ public class Assignment extends BaseModel {
         }
         Files.copy(file.toPath(), testDir.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
     }
+
+    public String toString() {
+        return getName();
+    }
 }

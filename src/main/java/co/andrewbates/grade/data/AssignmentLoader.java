@@ -62,17 +62,24 @@ public class AssignmentLoader extends BaseModelLoader<Assignment> {
     }
 
     public ObservableList<Assignment> get(Course course) {
-        return assignments.get(course.getID());
+        ObservableList<Assignment> list = assignments.get(course.getID());
+        if (list == null) {
+            list = FXCollections.observableArrayList();
+            assignments.put(course.getID(), list);
+        }
+        return list;
     }
 
     @Override
-    public void create(Assignment assignment) throws IOException {
-        super.create(assignment);
-        addAssignment(assignment);
+    public void save(Assignment assignment) throws IOException {
+        if (assignment.getID() == null) {
+            addAssignment(assignment);
+        }
+        super.save(assignment);
     }
 
     @Override
-    public void delete(Assignment assignment) {
+    public void delete(Assignment assignment) throws IOException {
         super.delete(assignment);
         if (assignments.containsKey(assignment.getCourseID())) {
             assignments.get(assignment.getCourseID()).remove(assignment);

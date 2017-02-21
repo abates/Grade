@@ -1,5 +1,6 @@
 package co.andrewbates.grade.controller;
 
+import co.andrewbates.grade.data.Model;
 import co.andrewbates.grade.model.Course;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,8 +17,9 @@ public class CourseController extends DialogController {
         super.handleOK(event);
     }
 
-    public void setCourse(Course course) {
-        this.course = course;
+    @Override
+    public void setModel(Model model) {
+        this.course = (Course) model;
         courseName.setText(course.getName());
     }
 }

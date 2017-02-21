@@ -2,7 +2,6 @@ package co.andrewbates.grade.task;
 
 import java.io.File;
 
-import co.andrewbates.grade.Main;
 import javafx.concurrent.Task;
 
 public class ImportTask extends Task<String> {
@@ -28,7 +27,7 @@ public class ImportTask extends Task<String> {
                     if (destination.mkdirs()) {
                         log("Creating directory " + destination.getPath());
                         String studentName = tokens[0];
-                        Main.students.findOrCreate(studentName, destination);
+                        // Main.students.findOrCreate(studentName, destination);
                     } else {
                         log("Failed to create " + destination.getAbsolutePath() + "\n");
                     }
@@ -42,7 +41,7 @@ public class ImportTask extends Task<String> {
                 }
             } else if (files[i].isDirectory()) {
                 String studentName = files[i].getName();
-                Main.students.findOrCreate(studentName, files[i]);
+                // Main.students.findOrCreate(studentName, files[i]);
                 log("Imported " + studentName);
             }
             updateProgress((double) i / (files.length - 1), 1.0);

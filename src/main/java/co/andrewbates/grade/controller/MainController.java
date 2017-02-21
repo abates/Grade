@@ -5,15 +5,21 @@ import java.io.IOException;
 
 import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.ImportWizard;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
 
 public class MainController {
+    @FXML
+    BorderPane borderPane;
+
     @FXML
     TabPane tabPane;
 
@@ -23,8 +29,14 @@ public class MainController {
     @FXML
     CheckMenuItem viewCoursesMenuItem;
 
-    Tab studentsTab;
-    Tab coursesTab;
+    private Tab studentsTab;
+
+    private Tab coursesTab;
+
+    public void setScene(Scene scene) {
+        borderPane.prefHeightProperty().bind(scene.heightProperty());
+        borderPane.prefWidthProperty().bind(scene.widthProperty());
+    }
 
     @FXML
     protected void handleImport(ActionEvent event) {
@@ -34,6 +46,11 @@ public class MainController {
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
+    }
+
+    @FXML
+    protected void handleClose(ActionEvent event) {
+        Platform.exit();
     }
 
     @FXML
@@ -60,13 +77,14 @@ public class MainController {
         viewStudentsMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 tabPane.getTabs().add(studentsTab);
+                tabPane.getSelectionModel().select(studentsTab);
             } else {
                 tabPane.getTabs().remove(studentsTab);
             }
         });
 
-        loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/CoursesTab.fxml"));
         coursesTab = new Tab("Courses");
+        loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/CoursesTab.fxml"));
         coursesTab.setContent(loader.load());
         coursesTab.setOnClosed(ev -> {
             viewCoursesMenuItem.setSelected(false);
@@ -75,6 +93,7 @@ public class MainController {
         viewCoursesMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 tabPane.getTabs().add(coursesTab);
+                tabPane.getSelectionModel().select(coursesTab);
             } else {
                 tabPane.getTabs().remove(coursesTab);
             }

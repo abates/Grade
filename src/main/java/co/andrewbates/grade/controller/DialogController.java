@@ -1,11 +1,12 @@
 package co.andrewbates.grade.controller;
 
+import co.andrewbates.grade.data.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
-public class DialogController {
+public abstract class DialogController {
     @FXML
     Region mainPane;
 
@@ -31,4 +32,5 @@ public class DialogController {
         return !completed;
     }
 
+    public abstract void setModel(Model model);
 }

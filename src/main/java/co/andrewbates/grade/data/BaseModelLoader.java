@@ -5,7 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.UUID;
 
 import org.hildan.fxgson.FxGson;
 
@@ -69,9 +74,20 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
         return String.join(File.separator, getPath(), object.getID().toString());
     }
 
-    public void delete(T object) {
-        File file = basedir.resolve(getPath(object)).toFile();
-        file.delete();
+    public void delete(T object) throws IOException {
+        Files.walkFileTree(basedir.resolve(getPath(object)), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
         list.remove(object);
     }
 
@@ -79,13 +95,12 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
         return list;
     }
 
-    public void create(T object) throws IOException {
-        list.add(object);
-        save(object);
-    }
-
     @Override
     public void save(T object) throws IOException {
+        if (object.getID() == null) {
+            object.setID(UUID.randomUUID());
+            list.add(object);
+        }
         File dir = basedir.resolve(getPath(object)).toFile();
         if (!dir.exists()) {
             dir.mkdirs();

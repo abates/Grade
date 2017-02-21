@@ -18,4 +18,8 @@ public class Course extends BaseModel {
     public final void setName(final String name) {
         this.nameProperty().set(name);
     }
+
+    public String toString() {
+        return getName();
+    }
 }

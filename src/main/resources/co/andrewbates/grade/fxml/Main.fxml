@@ -6,10 +6,9 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="co.andrewbates.grade.controller.MainController">
+<BorderPane fx:id="borderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="co.andrewbates.grade.controller.MainController">
    <top>
       <MenuBar BorderPane.alignment="CENTER">
          <menus>
@@ -21,8 +20,7 @@
                   <MenuItem mnemonicParsing="false" text="Import Database" />
                   <MenuItem mnemonicParsing="false" text="Export Database" />
                   <MenuItem mnemonicParsing="false" onAction="#handleImport" text="Import Submissions" />
-                  <MenuItem mnemonicParsing="false" onAction="#handleLoadTests" text="Load Tests" />
-                  <MenuItem mnemonicParsing="false" text="Close" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleClose" text="Close" />
                </items>
             </Menu>
             <Menu mnemonicParsing="false" text="View">
@@ -35,10 +33,6 @@
       </MenuBar>
    </top>
    <center>
-      <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-         <children>
-            <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-         </children>
-      </AnchorPane>
+      <TabPane fx:id="tabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER" />
    </center>
 </BorderPane>
