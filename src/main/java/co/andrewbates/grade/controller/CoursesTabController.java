@@ -8,8 +8,8 @@ import java.util.Optional;
 
 import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.control.FileContextMenu;
+import co.andrewbates.grade.data.BaseModel;
 import co.andrewbates.grade.data.Database;
-import co.andrewbates.grade.data.Model;
 import co.andrewbates.grade.dialog.ProgressDialog;
 import co.andrewbates.grade.model.Assignment;
 import co.andrewbates.grade.model.Course;
@@ -17,9 +17,7 @@ import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -31,10 +29,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class CoursesTabController {
+public class CoursesTabController extends BaseController {
     @FXML
     private TableView<Course> courseTable;
 
@@ -78,7 +75,7 @@ public class CoursesTabController {
 
     @FXML
     protected void handleAddCourse(ActionEvent event) throws IOException {
-        Course newCourse = new Course();
+        BaseModel newCourse = new Course();
         showDialog(courseDialog, newCourse, courseController);
     }
 
@@ -99,7 +96,7 @@ public class CoursesTabController {
 
     @FXML
     void handleCourseClicked(MouseEvent event) throws IOException {
-        Course course = courseTable.getSelectionModel().getSelectedItem();
+        BaseModel course = courseTable.getSelectionModel().getSelectedItem();
         if (course != null && event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
             showDialog(courseDialog, course, courseController);
         }
@@ -123,7 +120,7 @@ public class CoursesTabController {
 
     @FXML
     protected void handleAddAssignment(ActionEvent event) throws IOException {
-        Course course = courseTable.getSelectionModel().getSelectedItem();
+        BaseModel course = courseTable.getSelectionModel().getSelectedItem();
         if (course != null) {
             Assignment newAssignment = new Assignment();
             newAssignment.setCourseID(course.getID());
@@ -189,7 +186,8 @@ public class CoursesTabController {
                         if (!found) {
                             testFileTable.getItems().add(file);
                         }
-                        assignmentTable.getSelectionModel().getSelectedItem().copyTestFile(file);
+                        Database.getInstance().copyFileToAssignment(file,
+                                assignmentTable.getSelectionModel().getSelectedItem());
                         updateProgress(i, selectedFiles.size());
                     }
                     return null;
@@ -206,7 +204,7 @@ public class CoursesTabController {
 
     public void initialize() {
         courseController = new CourseController();
-        courseDialog = loadDialog(courseController, "/co/andrewbates/grade/fxml/Course.fxml");
+        courseDialog = loadStage(courseController, "/co/andrewbates/grade/fxml/Course.fxml");
 
         courseNameColumn.setCellValueFactory(new PropertyValueFactory<Course, String>("name"));
         initializeTable(courseTable, deleteCourseButton, addAssignmentButton);
@@ -220,14 +218,14 @@ public class CoursesTabController {
         });
 
         assignmentController = new AssignmentController();
-        assignmentDialog = loadDialog(assignmentController, "/co/andrewbates/grade/fxml/Assignment.fxml");
+        assignmentDialog = loadStage(assignmentController, "/co/andrewbates/grade/fxml/Assignment.fxml");
         assignmentNameColumn.setCellValueFactory(new PropertyValueFactory<Assignment, String>("name"));
         initializeTable(assignmentTable, deleteAssignmentButton, importTestFilesButton);
         assignmentTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (nv == null) {
                 testFileTable.setItems(FXCollections.observableArrayList());
             } else {
-                testFileTable.setItems(nv.getTestFiles());
+                testFileTable.setItems(Database.getInstance().getTestFiles(nv));
             }
         });
 
@@ -243,45 +241,5 @@ public class CoursesTabController {
         testFileTable.setContextMenu(menu);
         testFileNameColumn.setCellValueFactory(new PropertyValueFactory<File, String>("name"));
         initializeTable(testFileTable, deleteTestFileButton);
-    }
-
-    private void showDialog(Stage stage, Model model, DialogController controller) throws IOException {
-        controller.setModel(model);
-        stage.showAndWait();
-        if (controller.completed()) {
-            Database.getInstance().save(model);
-        }
-    }
-
-    private Stage loadDialog(Object controller, String path) {
-        Stage dialog = null;
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
-        loader.setController(controller);
-        try {
-            dialog = new Stage();
-            dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.setScene(new Scene(loader.load()));
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }
-        return dialog;
-    }
-
-    private void initializeTable(TableView<?> table, Button... buttons) {
-        for (Button button : buttons) {
-            button.setDisable(true);
-        }
-
-        table.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
-            if (nv != null) {
-                for (Button button : buttons) {
-                    button.setDisable(false);
-                }
-            } else {
-                for (Button button : buttons) {
-                    button.setDisable(true);
-                }
-            }
-        });
     }
 }

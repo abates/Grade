@@ -1,30 +1,34 @@
 package co.andrewbates.grade.task;
 
+import java.io.IOException;
 import java.util.List;
 
-import co.andrewbates.grade.model.Student;
+import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.model.Submission;
 import co.andrewbates.grade.rubric.Criteria;
 import co.andrewbates.grade.rubric.Rubric;
 import javafx.concurrent.Task;
 
 public class GradeTask extends Task<Void> {
-    private Student student;
+    private Submission submission;
     private Rubric rubric;
 
-    public GradeTask(Student student, Rubric rubric) {
-        this.student = student;
+    public GradeTask(Submission submission, Rubric rubric) {
+        this.submission = submission;
         this.rubric = rubric;
     }
 
     @Override
-    protected Void call() {
+    protected Void call() throws IOException {
+        submission.setStatus(Submission.Status.NOTGRADED);
         updateProgress(0.0, 1.0);
         List<Criteria> criteria = rubric.getCriteria();
         for (int i = 0; i < criteria.size(); i++) {
-            criteria.get(i).grade(student);
+            criteria.get(i).grade(submission);
             updateProgress((double) i / criteria.size(), 1.0);
         }
         updateProgress(1.0, 1.0);
+        Database.getInstance().save(submission);
         succeeded();
         return null;
     }

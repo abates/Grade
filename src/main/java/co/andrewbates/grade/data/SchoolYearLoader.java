@@ -1,6 +1,7 @@
 package co.andrewbates.grade.data;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import co.andrewbates.grade.model.SchoolYear;
 
@@ -12,8 +13,8 @@ public class SchoolYearLoader extends BaseModelLoader<SchoolYear> {
     }
 
     @Override
-    public String getPath() {
-        return "years";
+    public Path getPath() {
+        return super.getPath().resolve("years");
     }
 
 }

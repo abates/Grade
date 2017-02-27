@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.hildan.fxgson.FxGson;
@@ -25,40 +26,72 @@ import javafx.concurrent.Task;
 public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T> {
     private ObservableList<T> list;
     private Class<T> modelClass;
-    private Path basedir;
+    private Path path;
+    private HashMap<UUID, T> index;
 
     public BaseModelLoader(Class<T> modelClass) {
         this.modelClass = modelClass;
         this.list = FXCollections.observableArrayList();
+        this.index = new HashMap<UUID, T>();
     }
 
-    private T loadFile(File file) throws DataException {
+    protected void initialize(T model) {
+
+    }
+
+    public T get(UUID id) {
+        return index.get(id);
+    }
+
+    T load(File file) throws DataException {
+        if (file.isDirectory()) {
+            file = file.toPath().resolve("model.json").toFile();
+        }
+
+        if (!file.exists()) {
+            return null;
+        }
+
         T model = null;
         Gson gson = FxGson.create();
         try {
             model = gson.fromJson(new FileReader(file), modelClass);
+            initialize(model);
+            list.add(model);
+            index.put(model.getID(), model);
         } catch (JsonSyntaxException | JsonIOException | FileNotFoundException e) {
+            // TODO this needs to throw something
             e.printStackTrace(System.err);
         }
         return model;
     }
 
-    public Task<Void> load(Path basedir) throws DataException {
-        this.basedir = basedir;
+    T load(Path path) throws DataException {
+        return load(path.toFile());
+    }
+
+    T load(String name) throws DataException {
+        File file = getPath().resolve(name).toFile();
+        if (file.exists()) {
+            return load(file);
+        }
+        return null;
+    }
+
+    public Task<Void> loadAll(Path path) throws DataException {
+        setPath(path);
+        return loadAll();
+    }
+
+    public Task<Void> loadAll() throws DataException {
         return new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 list.clear();
-                File[] dirs = basedir.resolve(getPath()).toFile().listFiles();
-                for (int i = 0; i < dirs.length; i++) {
-                    if (dirs[i].isDirectory()) {
-                        File file = dirs[i].toPath().resolve("model.json").toFile();
-                        if (file.exists()) {
-                            updateMessage("Loading " + dirs[i].getName());
-                            list.add(loadFile(file));
-                        }
-                    }
-                    updateProgress(i, dirs.length);
+                File[] files = getPath().toFile().listFiles();
+                for (int i = 0; i < files.length; i++) {
+                    load(files[i]);
+                    updateProgress(i, files.length);
                 }
                 updateProgress(1.0, 1.0);
                 succeeded();
@@ -67,15 +100,21 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
         };
     }
 
-    public abstract String getPath();
+    void setPath(Path path) {
+        this.path = path;
+    }
+
+    public Path getPath() {
+        return path;
+    }
 
     @Override
-    public String getPath(T object) {
-        return String.join(File.separator, getPath(), object.getID().toString());
+    public Path getPath(T object) {
+        return getPath().resolve(object.getID().toString());
     }
 
     public void delete(T object) throws IOException {
-        Files.walkFileTree(basedir.resolve(getPath(object)), new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(getPath(object), new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 Files.delete(file);
@@ -100,8 +139,10 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
         if (object.getID() == null) {
             object.setID(UUID.randomUUID());
             list.add(object);
+            FXCollections.sort(list);
         }
-        File dir = basedir.resolve(getPath(object)).toFile();
+
+        File dir = getPath(object).toFile();
         if (!dir.exists()) {
             dir.mkdirs();
         }

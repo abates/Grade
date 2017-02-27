@@ -1,7 +1,7 @@
 package co.andrewbates.grade.rubric;
 
-import co.andrewbates.grade.model.Student;
+import co.andrewbates.grade.model.Submission;
 
 public interface Criteria {
-    public void grade(Student student);
+    public void grade(Submission submission);
 }

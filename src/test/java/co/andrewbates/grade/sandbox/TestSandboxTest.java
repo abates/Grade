@@ -26,7 +26,7 @@ public class TestSandboxTest {
             Properties testProps = new Properties();
             Path propsPath = Paths.get(studentDir.getAbsolutePath(), "test.properties");
             testProps.load(new FileInputStream(propsPath.toFile()));
-            TestSandbox sandbox = new TestSandbox(studentDir, testDir);
+            TestSandbox sandbox = new TestSandbox(studentDir.toPath(), testDir.toPath());
             try {
                 TestResults results = sandbox.runTests();
                 if (results.getFailedCount() > 0 && testProps.getProperty("testsPass").equals("true")) {

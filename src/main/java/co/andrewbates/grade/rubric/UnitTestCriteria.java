@@ -1,34 +1,35 @@
 package co.andrewbates.grade.rubric;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import org.junit.runners.model.InitializationError;
 
-import co.andrewbates.grade.model.Student;
+import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.model.Submission;
 import co.andrewbates.grade.sandbox.TestResults;
 import co.andrewbates.grade.sandbox.TestSandbox;
 import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 
 public class UnitTestCriteria implements Criteria {
-    private File testDirectory;
+    private Path testPath;
 
-    public UnitTestCriteria(File testDirectory) {
-        this.testDirectory = testDirectory;
+    public UnitTestCriteria(Path testPath) {
+        this.testPath = testPath;
     }
 
     @Override
-    public void grade(Student student) {
+    public void grade(Submission submission) {
         TestSandbox sandbox = null;
         try {
-            sandbox = new TestSandbox(student, testDirectory);
+            sandbox = new TestSandbox(Database.getInstance().getSubmissionPath(submission), testPath);
             TestResults results = sandbox.runTests();
             int count = results.getTestCount();
             int score = results.getPassedCount();
             String message = results.getMessage();
-            // student.setGrade(new Score("test", score, count, message));
+            submission.setScore(new Score("test", score, count, message));
         } catch (InitializationError | CompileException | IOException e) {
-            // student.setGrade(new Score("test", 0, 1, e.getMessage()));
+            submission.setScore(new Score("test", 0, 1, e.getMessage()));
         } finally {
             try {
                 if (sandbox != null) {

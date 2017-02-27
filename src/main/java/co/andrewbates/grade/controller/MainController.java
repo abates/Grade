@@ -2,36 +2,46 @@ package co.andrewbates.grade.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import co.andrewbates.grade.GradePreferences;
-import co.andrewbates.grade.ImportWizard;
+import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.model.SchoolYear;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Menu;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
-public class MainController {
+public class MainController extends BaseController {
     @FXML
-    BorderPane borderPane;
-
-    @FXML
-    TabPane tabPane;
+    private BorderPane borderPane;
 
     @FXML
-    CheckMenuItem viewStudentsMenuItem;
+    private TabPane tabPane;
 
     @FXML
-    CheckMenuItem viewCoursesMenuItem;
+    private CheckMenuItem viewStudentsMenuItem;
 
-    private Tab studentsTab;
+    @FXML
+    private CheckMenuItem viewCoursesMenuItem;
 
-    private Tab coursesTab;
+    @FXML
+    private Menu yearsMenu;
+
+    private Stage yearDialog;
+
+    private SchoolYearController yearController;
+
+    private HashMap<String, Tab> yearsTabs = new HashMap<>();
 
     public void setScene(Scene scene) {
         borderPane.prefHeightProperty().bind(scene.heightProperty());
@@ -39,17 +49,32 @@ public class MainController {
     }
 
     @FXML
-    protected void handleImport(ActionEvent event) {
-        try {
-            ImportWizard wizard = new ImportWizard();
-            wizard.showAndWait();
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
+    public void handleOpenYear(ActionEvent event) {
+
+    }
+
+    @FXML
+    public void handleNewYear(ActionEvent event) throws IOException {
+        SchoolYear newYear = new SchoolYear();
+        showDialog(yearDialog, newYear, yearController);
+        if (yearController.completed()) {
+            loadYearTab(newYear);
+        }
+    }
+
+    private void loadYearTab(SchoolYear schoolYear) {
+        Tab tab = yearsTabs.get(schoolYear.getName());
+        if (tab != null) {
+            int index = yearsMenu.getItems().indexOf(schoolYear.getName());
+            if (index >= 0) {
+                ((CheckMenuItem) yearsMenu.getItems().get(index)).setSelected(true);
+            }
+            tabPane.getTabs().add(tab);
         }
     }
 
     @FXML
-    protected void handleClose(ActionEvent event) {
+    public void handleClose(ActionEvent event) {
         Platform.exit();
     }
 
@@ -65,38 +90,66 @@ public class MainController {
         }
     }
 
+    @SuppressWarnings("unused")
     public void initialize() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/StudentsTab.fxml"));
+        loadTab("Students", viewStudentsMenuItem, "/co/andrewbates/grade/fxml/StudentsTab.fxml");
+        loadTab("Courses", viewCoursesMenuItem, "/co/andrewbates/grade/fxml/CoursesTab.fxml");
 
-        studentsTab = new Tab("Students");
-        studentsTab.setContent(loader.load());
-        studentsTab.setOnClosed(ev -> {
-            viewStudentsMenuItem.setSelected(false);
+        yearController = new SchoolYearController();
+        yearDialog = loadStage(yearController, "/co/andrewbates/grade/fxml/SchoolYear.fxml");
+
+        Database.getInstance().schoolYears().addListener((ListChangeListener<SchoolYear>) (change) -> {
+            for (; change.next();) {
+                int index = change.getFrom();
+                for (SchoolYear year : change.getRemoved()) {
+                    yearsMenu.getItems().remove(index);
+                }
+
+                for (SchoolYear year : change.getAddedSubList()) {
+                    final int finalIndex = index;
+                    Platform.runLater(() -> {
+                        CheckMenuItem menuItem = new CheckMenuItem(year.getName());
+                        Tab yearTab = loadTabWithController(year.getName(), menuItem, new SchoolYearTabController(year),
+                                "/co/andrewbates/grade/fxml/SchoolYearTab.fxml");
+                        yearsMenu.getItems().add(finalIndex, menuItem);
+                        yearsTabs.put(year.getName(), yearTab);
+                    });
+                    index++;
+                }
+            }
+        });
+    }
+
+    private Tab loadTabWithController(String name, CheckMenuItem menuItem, Object controller, String path) {
+        final Tab tab = new Tab(name);
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
+        if (controller != null) {
+            loader.setController(controller);
+        }
+
+        try {
+            tab.setContent(loader.load());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        tab.setOnClosed(ev -> {
+            menuItem.setSelected(false);
         });
 
-        viewStudentsMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
+        menuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
-                tabPane.getTabs().add(studentsTab);
-                tabPane.getSelectionModel().select(studentsTab);
+                tabPane.getTabs().add(tab);
+                tabPane.getSelectionModel().select(tab);
             } else {
-                tabPane.getTabs().remove(studentsTab);
+                tabPane.getTabs().remove(tab);
             }
         });
 
-        coursesTab = new Tab("Courses");
-        loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/CoursesTab.fxml"));
-        coursesTab.setContent(loader.load());
-        coursesTab.setOnClosed(ev -> {
-            viewCoursesMenuItem.setSelected(false);
-        });
+        return tab;
+    }
 
-        viewCoursesMenuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                tabPane.getTabs().add(coursesTab);
-                tabPane.getSelectionModel().select(coursesTab);
-            } else {
-                tabPane.getTabs().remove(coursesTab);
-            }
-        });
+    private Tab loadTab(String name, CheckMenuItem menuItem, String path) {
+        return loadTabWithController(name, menuItem, null, path);
     }
 }

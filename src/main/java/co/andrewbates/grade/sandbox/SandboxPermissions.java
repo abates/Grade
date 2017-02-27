@@ -11,7 +11,7 @@ public class SandboxPermissions extends PermissionCollection {
     private Permissions permissions = new Permissions();
 
     public SandboxPermissions(Sandbox sandbox) {
-        permissions.add(new FilePermission(sandbox.getDir().getAbsolutePath() + "/-", "read"));
+        permissions.add(new FilePermission(sandbox.getDir().toAbsolutePath().toString() + "/-", "read"));
     }
 
     @Override

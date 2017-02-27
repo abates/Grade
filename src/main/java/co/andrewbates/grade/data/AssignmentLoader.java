@@ -1,16 +1,17 @@
 package co.andrewbates.grade.data;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import co.andrewbates.grade.model.Assignment;
-import co.andrewbates.grade.model.Course;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 
 public class AssignmentLoader extends BaseModelLoader<Assignment> {
     public final String TESTDIR_PATH = "tests";
@@ -24,44 +25,22 @@ public class AssignmentLoader extends BaseModelLoader<Assignment> {
     }
 
     private void addAssignment(Assignment assignment) {
+        if (assignments == null) {
+            assignments = new HashMap<UUID, ObservableList<Assignment>>();
+        }
+
         if (!assignments.containsKey(assignment.getCourseID())) {
             assignments.put(assignment.getCourseID(), FXCollections.observableArrayList());
         }
         assignments.get(assignment.getCourseID()).add(assignment);
     }
 
-    public Task<Void> load(Path dir) throws DataException {
-        this.dir = dir;
-        final Task<Void> parent = super.load(dir);
-        return new Task<Void>() {
-            private void addProgress(double amount) {
-                updateProgress(amount * 0.5, 1.0);
-            }
-
-            @Override
-            protected Void call() throws Exception {
-                Thread t = new Thread(parent);
-                parent.progressProperty().addListener((o, ov, nv) -> {
-                    addProgress(nv.doubleValue());
-                });
-                t.start();
-                t.join();
-
-                assignments = new HashMap<UUID, ObservableList<Assignment>>();
-                ObservableList<Assignment> list = list();
-                for (int i = 0; i < list.size(); i++) {
-                    Assignment assignment = list.get(i);
-                    addAssignment(assignment);
-                    updateProgress(0.5 + (0.5 * i / list.size()), 1.0);
-                }
-                updateProgress(1.0, 1.0);
-                succeeded();
-                return null;
-            }
-        };
+    @Override
+    protected void initialize(Assignment assignment) {
+        addAssignment(assignment);
     }
 
-    public ObservableList<Assignment> get(Course course) {
+    public ObservableList<Assignment> get(BaseModel course) {
         ObservableList<Assignment> list = assignments.get(course.getID());
         if (list == null) {
             list = FXCollections.observableArrayList();
@@ -87,7 +66,15 @@ public class AssignmentLoader extends BaseModelLoader<Assignment> {
     }
 
     @Override
-    public String getPath() {
-        return "assignments";
+    public Path getPath() {
+        return super.getPath().resolve("assignments");
+    }
+
+    public void copyFile(File file, Assignment assignment) throws IOException {
+        Path testDir = getPath(assignment).resolve("tests");
+        if (!testDir.toFile().exists()) {
+            testDir.toFile().mkdirs();
+        }
+        Files.copy(file.toPath(), testDir.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
     }
 }

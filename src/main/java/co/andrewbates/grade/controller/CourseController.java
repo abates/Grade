@@ -1,13 +1,13 @@
 package co.andrewbates.grade.controller;
 
+import co.andrewbates.grade.data.BaseModel;
 import co.andrewbates.grade.data.Model;
-import co.andrewbates.grade.model.Course;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 
 public class CourseController extends DialogController {
-    Course course;
+    BaseModel course;
 
     @FXML
     TextField courseName;
@@ -19,7 +19,7 @@ public class CourseController extends DialogController {
 
     @Override
     public void setModel(Model model) {
-        this.course = (Course) model;
+        this.course = (BaseModel) model;
         courseName.setText(course.getName());
     }
 }

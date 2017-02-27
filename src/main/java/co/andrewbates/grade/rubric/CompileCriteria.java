@@ -1,11 +1,13 @@
 package co.andrewbates.grade.rubric;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
-import co.andrewbates.grade.model.Student;
+import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.model.Submission;
 import co.andrewbates.grade.sandbox.Sandbox;
 import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 
@@ -16,14 +18,17 @@ public class CompileCriteria implements Criteria {
         compiler = ToolProvider.getSystemJavaCompiler();
     }
 
-    public void grade(Student student) {
+    public void grade(Submission submission) {
         try {
-            Sandbox sandbox = new Sandbox(student);
+            Path submissionPath = Database.getInstance().getSubmissionPath(submission);
+            Path testPath = Database.getInstance()
+                    .getTestPath(Database.getInstance().getAssignment(submission.getAssignmentID()));
+            Sandbox sandbox = new Sandbox(submissionPath, testPath);
             sandbox.compileFiles();
-            // student.setGrade(new Score("compile", 1, 1));
+            submission.setScore(new Score("compile", 1, 1));
             sandbox.close();
         } catch (CompileException | IOException e) {
-            // student.setGrade(new Score("compile", 0, 1, e.getMessage()));
+            submission.setScore(new Score("compile", 0, 1, e.getMessage()));
         }
     }
 }

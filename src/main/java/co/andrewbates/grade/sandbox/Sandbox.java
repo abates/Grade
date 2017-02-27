@@ -4,19 +4,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sun.tools.javac.api.JavacTool;
 
-import co.andrewbates.grade.model.Student;
 import co.andrewbates.grade.sandbox.TestSandbox.CompileException;
 
 public class Sandbox implements AutoCloseable {
-    protected ClassLoader classLoader;
-    protected File sandboxDir;
+    private ClassLoader classLoader;
+    private Path sandboxDir;
     private JavacTool compiler;
 
     static {
@@ -24,16 +26,11 @@ public class Sandbox implements AutoCloseable {
         URL.setURLStreamHandlerFactory(new SandboxStreamHandlerFactory());
     }
 
-    public Sandbox(Student student) throws IOException {
-        throw new RuntimeException("Need to re-implement this!");
-        // this(student.getDir());
-    }
-
     @SuppressWarnings("deprecation")
-    public Sandbox(File... sandboxDirs) throws IOException {
-        this.sandboxDir = Files.createTempDirectory(null).toFile();
-        for (File sandboxDir : sandboxDirs) {
-            copy(sandboxDir, this.sandboxDir);
+    public Sandbox(Path... sandboxPaths) throws IOException {
+        this.sandboxDir = Files.createTempDirectory(null);
+        for (Path sandboxPath : sandboxPaths) {
+            copy(sandboxPath, this.sandboxDir);
         }
         this.classLoader = new ClassLoader(this);
         this.compiler = new JavacTool();
@@ -43,53 +40,65 @@ public class Sandbox implements AutoCloseable {
         }
     }
 
-    private void deleteAll(File dir) {
-        if (dir.isFile()) {
-            dir.delete();
-        } else if (dir.isDirectory()) {
-            for (File file : dir.listFiles()) {
-                deleteAll(file);
+    private void deleteAll(Path path) throws IOException {
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
             }
-            dir.delete();
-        }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
-    private void copy(File source, File destination) throws IOException {
-        if (source.isFile()) {
-            if (!destination.getParentFile().exists()) {
-                destination.getParentFile().mkdirs();
+    private void copy(Path source, Path destination) throws IOException {
+        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                copy(file);
+                return FileVisitResult.CONTINUE;
             }
 
-            Files.copy(source.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } else if (source.isDirectory()) {
-            for (File file : source.listFiles()) {
-                File newDestination = new File(destination, file.getName());
-                copy(file, newDestination);
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                if (!dir.equals(source)) {
+                    copy(dir);
+                }
+                return FileVisitResult.CONTINUE;
             }
-        }
+
+            private void copy(Path fileOrDir) throws IOException {
+                Files.copy(fileOrDir, destination.resolve(source.relativize(fileOrDir)));
+            }
+        });
     }
 
     public void close() throws IOException {
         deleteAll(sandboxDir);
     }
 
-    public List<File> getJavaFiles() {
+    private List<File> getFiles(String extension) throws IOException {
         ArrayList<File> files = new ArrayList<File>();
-        getJavaFiles(files, sandboxDir);
+        Files.walkFileTree(sandboxDir, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (file.toString().endsWith(extension)) {
+                    files.add(file.toFile());
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
         return files;
     }
 
-    private void getJavaFiles(List<File> list, File dir) {
-        if (dir.isFile() && dir.getName().endsWith(".java")) {
-            list.add(dir);
-        } else if (dir.isDirectory()) {
-            for (File file : dir.listFiles()) {
-                getJavaFiles(list, file);
-            }
-        }
+    public List<File> getJavaFiles() throws IOException {
+        return getFiles(".java");
     }
 
-    public File getDir() {
+    public Path getDir() {
         return sandboxDir;
     }
 
@@ -115,20 +124,8 @@ public class Sandbox implements AutoCloseable {
         return classes;
     }
 
-    private List<File> getClassFiles() {
-        ArrayList<File> files = new ArrayList<File>();
-        getClassFiles(files, sandboxDir);
-        return files;
-    }
-
-    private void getClassFiles(List<File> list, File dir) {
-        if (dir.isFile() && dir.getName().endsWith(".class")) {
-            list.add(dir);
-        } else if (dir.isDirectory()) {
-            for (File file : dir.listFiles()) {
-                getClassFiles(list, file);
-            }
-        }
+    private List<File> getClassFiles() throws IOException {
+        return getFiles(".class");
     }
 
     public void run(Runnable runnable) {
@@ -142,5 +139,9 @@ public class Sandbox implements AutoCloseable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 }

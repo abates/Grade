@@ -31,7 +31,7 @@ public class ClassLoader extends java.lang.ClassLoader {
     private URL getURL() {
         URL url;
         try {
-            url = new URL("sandbox", "", sandbox.getDir().getAbsolutePath());
+            url = new URL("sandbox", "", sandbox.getDir().toAbsolutePath().toString());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

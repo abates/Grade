@@ -1,58 +1,74 @@
 package co.andrewbates.grade.task;
 
 import java.io.File;
+import java.io.IOException;
 
+import co.andrewbates.grade.data.DataException;
+import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.model.Assignment;
+import co.andrewbates.grade.model.Offering;
+import co.andrewbates.grade.model.Submission;
 import javafx.concurrent.Task;
 
-public class ImportTask extends Task<String> {
-    StringBuilder output;
-    File folder;
+public class ImportTask extends Task<Void> {
+    private StringBuilder output = new StringBuilder();
+    private File folder;
+    private Offering offering;
+    private Assignment assignment;
 
-    public ImportTask(File folder) {
+    public ImportTask(File folder, Offering offering, Assignment assignment) {
         this.folder = folder;
-        output = new StringBuilder();
+        this.offering = offering;
+        this.assignment = assignment;
     }
 
     @Override
-    protected String call() {
+    protected Void call() throws IOException, DataException {
         updateProgress(0, 1.0);
         File[] files = folder.listFiles();
+        // TODO: This needs to be updated to use the NIO file walk utilities
+        // it also should filter out anything that isn't a .java file
         for (int i = 0; i < files.length; i++) {
             String filename = files[i].getName();
             if (filename.indexOf("assignsubmission_file") > 0) {
                 String[] tokens = files[i].getName().split("_");
 
-                File destination = new File(folder.getAbsolutePath() + "/" + tokens[0]);
-                if (!destination.exists()) {
-                    if (destination.mkdirs()) {
-                        log("Creating directory " + destination.getPath());
-                        String studentName = tokens[0];
-                        // Main.students.findOrCreate(studentName, destination);
-                    } else {
-                        log("Failed to create " + destination.getAbsolutePath() + "\n");
-                    }
-                }
+                String studentName = tokens[0];
 
-                if (destination.exists()) {
-                    File newFile = new File(destination.getAbsolutePath() + "/" + tokens[4]);
-                    if (!files[i].renameTo(newFile)) {
-                        log("Failed to rename " + files[i].getName() + "\n");
-                    }
-                }
+                Submission submission = getSubmission(studentName);
+                Database.getInstance().copyFileToSubmission(files[i], submission);
             } else if (files[i].isDirectory()) {
                 String studentName = files[i].getName();
-                // Main.students.findOrCreate(studentName, files[i]);
+                Submission submission = getSubmission(studentName);
+                for (File file : files[i].listFiles()) {
+                    Database.getInstance().copyFileToSubmission(file, submission);
+                }
                 log("Imported " + studentName);
             }
             updateProgress((double) i / (files.length - 1), 1.0);
         }
         succeeded();
-        return output.toString();
+        return null;
+    }
+
+    private Submission getSubmission(String studentName) throws DataException, IOException {
+        Submission submission = Database.getInstance().getSubmission(offering, assignment, studentName);
+
+        if (submission == null) {
+            submission = new Submission();
+            submission.setStudentName(studentName);
+            submission.setOfferingID(offering.getID());
+            submission.setAssignmentID(assignment.getID());
+            submission.setStatus(Submission.Status.NOTGRADED);
+            Database.getInstance().save(submission);
+        }
+
+        return submission;
     }
 
     private void log(String message) {
         output.append(message);
         output.append("\n");
-        updateValue(output.toString());
+        updateMessage(output.toString());
     }
 }
