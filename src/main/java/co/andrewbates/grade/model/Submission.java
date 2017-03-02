@@ -65,6 +65,9 @@ public class Submission extends BaseModel {
 
     public void setStatus(Status status) {
         this.status.set(status);
+        if (status == Status.NOTGRADED) {
+            setGrade("");
+        }
     }
 
     public Status getStatus() {

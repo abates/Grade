@@ -1,6 +1,5 @@
 package co.andrewbates.grade.task;
 
-import java.io.IOException;
 import java.util.List;
 
 import co.andrewbates.grade.data.Database;
@@ -19,7 +18,7 @@ public class GradeTask extends Task<Void> {
     }
 
     @Override
-    protected Void call() throws IOException {
+    protected Void call() throws Exception {
         submission.setStatus(Submission.Status.NOTGRADED);
         updateProgress(0.0, 1.0);
         List<Criteria> criteria = rubric.getCriteria();
@@ -32,5 +31,4 @@ public class GradeTask extends Task<Void> {
         succeeded();
         return null;
     }
-
 }

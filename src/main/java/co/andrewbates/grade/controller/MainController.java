@@ -1,10 +1,8 @@
 package co.andrewbates.grade.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
-import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.data.Database;
 import co.andrewbates.grade.model.SchoolYear;
 import javafx.application.Platform;
@@ -18,7 +16,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class MainController extends BaseController {
@@ -76,18 +73,6 @@ public class MainController extends BaseController {
     @FXML
     public void handleClose(ActionEvent event) {
         Platform.exit();
-    }
-
-    @FXML
-    protected void handleLoadTests(ActionEvent event) {
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Import Folder");
-        chooser.setInitialDirectory(GradePreferences.testDirectory());
-
-        File testDirectory = chooser.showDialog(tabPane.getScene().getWindow());
-        if (testDirectory != null) {
-            GradePreferences.setTestDirectory(testDirectory.getParentFile());
-        }
     }
 
     @SuppressWarnings("unused")

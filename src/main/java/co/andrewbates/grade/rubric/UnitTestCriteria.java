@@ -1,6 +1,5 @@
 package co.andrewbates.grade.rubric;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import org.junit.runners.model.InitializationError;
@@ -19,7 +18,7 @@ public class UnitTestCriteria implements Criteria {
     }
 
     @Override
-    public void grade(Submission submission) {
+    public void grade(Submission submission) throws Exception {
         TestSandbox sandbox = null;
         try {
             sandbox = new TestSandbox(Database.getInstance().getSubmissionPath(submission), testPath);
@@ -28,17 +27,12 @@ public class UnitTestCriteria implements Criteria {
             int score = results.getPassedCount();
             String message = results.getMessage();
             submission.setScore(new Score("test", score, count, message));
-        } catch (InitializationError | CompileException | IOException e) {
+        } catch (InitializationError | CompileException e) {
             submission.setScore(new Score("test", 0, 1, e.getMessage()));
         } finally {
-            try {
-                if (sandbox != null) {
-                    sandbox.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace(System.err);
+            if (sandbox != null) {
+                sandbox.close();
             }
         }
     }
-
 }

@@ -121,7 +121,7 @@
             </ButtonBar>
             <TableView fx:id="submissionsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="200.0" onMouseClicked="#handleSubmissionClicked" VBox.vgrow="ALWAYS">
                <columns>
-                  <TableColumn fx:id="submissionGradedColumn" prefWidth="31.0" />
+                  <TableColumn fx:id="submissionGradedColumn" prefWidth="31.0" style="-fx-alignment: CENTER;" />
                   <TableColumn fx:id="submissionNameColumn" minWidth="75.0" prefWidth="-1.0" text="Student Name" />
                   <TableColumn fx:id="submissionScoreColumn" prefWidth="33.0" />
                </columns>

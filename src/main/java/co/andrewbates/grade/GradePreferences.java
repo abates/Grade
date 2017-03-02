@@ -13,24 +13,6 @@ import javafx.stage.Window;
 import net.harawata.appdirs.AppDirsFactory;
 
 public class GradePreferences {
-    public static File workingDirectory() {
-        String wd = system().get("workingDirectory", System.getProperty("user.dir"));
-        return new File(wd);
-    }
-
-    public static void setWorkingDirectory(File file) {
-        system().put("workingDirectory", file.getAbsolutePath());
-    }
-
-    public static File testDirectory() {
-        String wd = system().get("testDirectory", System.getProperty("user.dir"));
-        return new File(wd);
-    }
-
-    public static void setTestDirectory(File file) {
-        system().put("testDirectory", file.getAbsolutePath());
-    }
-
     public static Preferences system() {
         return root().node("system");
     }

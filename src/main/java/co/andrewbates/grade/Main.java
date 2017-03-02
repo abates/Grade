@@ -1,5 +1,7 @@
 package co.andrewbates.grade;
 
+import org.controlsfx.dialog.ExceptionDialog;
+
 import co.andrewbates.grade.controller.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -12,10 +14,26 @@ public class Main extends Application {
     private Stage mainStage;
 
     @Override
-    public void start(final Stage mainStage) throws Exception {
+    public void start(final Stage mainStage) {
         this.mainStage = mainStage;
-        showMainStage();
-        showSplash();
+
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            handleException(throwable);
+        });
+
+        try {
+            showMainStage();
+            showSplash();
+        } catch (Exception ex) {
+            handleException(ex);
+        }
+    }
+
+    public static void handleException(Throwable throwable) {
+        System.err.println("Encountered an exception: ");
+        throwable.printStackTrace(System.err);
+        ExceptionDialog dialog = new ExceptionDialog(throwable);
+        dialog.showAndWait();
     }
 
     private void showMainStage() throws Exception {

@@ -1,6 +1,5 @@
 package co.andrewbates.grade.rubric;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
 import javax.tools.JavaCompiler;
@@ -18,7 +17,7 @@ public class CompileCriteria implements Criteria {
         compiler = ToolProvider.getSystemJavaCompiler();
     }
 
-    public void grade(Submission submission) {
+    public void grade(Submission submission) throws Exception {
         try {
             Path submissionPath = Database.getInstance().getSubmissionPath(submission);
             Path testPath = Database.getInstance()
@@ -27,7 +26,7 @@ public class CompileCriteria implements Criteria {
             sandbox.compileFiles();
             submission.setScore(new Score("compile", 1, 1));
             sandbox.close();
-        } catch (CompileException | IOException e) {
+        } catch (CompileException e) {
             submission.setScore(new Score("compile", 0, 1, e.getMessage()));
         }
     }

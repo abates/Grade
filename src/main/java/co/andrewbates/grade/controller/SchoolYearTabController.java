@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import co.andrewbates.grade.GradePreferences;
+import co.andrewbates.grade.Main;
 import co.andrewbates.grade.control.FileContextMenu;
 import co.andrewbates.grade.control.FileContextMenu.FileContextEvent;
 import co.andrewbates.grade.data.Database;
@@ -19,6 +20,7 @@ import co.andrewbates.grade.task.ImportTask;
 import de.jensd.fx.glyphs.GlyphIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -114,8 +116,11 @@ public class SchoolYearTabController extends BaseController {
         selectedAssignment = assignmentsTable.getSelectionModel().getSelectedItem();
         if (selectedAssignment == null) {
             submissionsTable.setItems(null);
+            gradeAssignmentsButton.setDisable(true);
         } else {
-            submissionsTable.setItems(Database.getInstance().submissions(selectedOffering, selectedAssignment));
+            ObservableList<Submission> submissions = Database.getInstance().submissions(selectedOffering,
+                    selectedAssignment);
+            submissionsTable.setItems(submissions);
         }
     }
 
@@ -124,9 +129,12 @@ public class SchoolYearTabController extends BaseController {
         selectedOffering = offeringsTable.getSelectionModel().getSelectedItem();
         if (selectedOffering == null) {
             selectedCourse = null;
+            assignmentsTable.setItems(null);
+            submissionsTable.setItems(null);
         } else {
             selectedCourse = Database.getInstance().getCourse(selectedOffering.getCourseID());
             assignmentsTable.setItems(Database.getInstance().assignments(selectedCourse));
+            submissionsTable.setItems(null);
         }
     }
 
@@ -176,12 +184,19 @@ public class SchoolYearTabController extends BaseController {
 
     @FXML
     void handleGradeAssignments(ActionEvent event) {
-        DefaultRubric rubric = new DefaultRubric(Database.getInstance().getTestPath(selectedAssignment));
-        GradeAllTask task = new GradeAllTask(submissionsTable.getItems(), rubric);
-
-        LoggingProgressDialog dialog = new LoggingProgressDialog(task);
-        new Thread(task).start();
-        dialog.showAndWait();
+        ObservableList<Submission> submissions = submissionsTable.getItems();
+        if (submissions != null && submissions.size() > 0) {
+            DefaultRubric rubric = new DefaultRubric(Database.getInstance().getTestPath(selectedAssignment));
+            GradeAllTask task = new GradeAllTask(submissions, rubric);
+            task.onFailedProperty().addListener(state -> {
+                if (task.getException() != null) {
+                    Main.handleException(task.getException());
+                }
+            });
+            LoggingProgressDialog dialog = new LoggingProgressDialog(task);
+            new Thread(task).start();
+            dialog.showAndWait();
+        }
     }
 
     private void handleDeleteFile(FileContextEvent event) {
@@ -218,7 +233,6 @@ public class SchoolYearTabController extends BaseController {
                     super.updateItem(status, empty);
                     if (status == null || empty) {
                         setText("");
-                        setStyle("");
                     } else {
                         GlyphIcon<FontAwesomeIcon> icon = null;
                         switch (status) {
