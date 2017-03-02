@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import co.andrewbates.grade.GradePreferences;
+import co.andrewbates.grade.Main;
 import co.andrewbates.grade.control.FileContextMenu;
 import co.andrewbates.grade.data.BaseModel;
 import co.andrewbates.grade.data.Database;
@@ -165,7 +165,7 @@ public class CoursesTabController extends BaseController {
         FileChooser chooser = new FileChooser();
         chooser.setSelectedExtensionFilter(new ExtensionFilter("Java Files", ".java"));
         chooser.setTitle("Import Tests");
-        chooser.setInitialDirectory(GradePreferences.importDirectory());
+        chooser.setInitialDirectory(Main.preferences.importDirectory());
 
         List<File> selectedFiles = chooser.showOpenMultipleDialog(((Node) event.getTarget()).getScene().getWindow());
         if (selectedFiles != null && !selectedFiles.isEmpty()) {

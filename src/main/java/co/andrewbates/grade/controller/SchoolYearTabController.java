@@ -3,7 +3,6 @@ package co.andrewbates.grade.controller;
 import java.io.File;
 import java.io.IOException;
 
-import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.Main;
 import co.andrewbates.grade.control.FileContextMenu;
 import co.andrewbates.grade.control.FileContextMenu.FileContextEvent;
@@ -142,11 +141,11 @@ public class SchoolYearTabController extends BaseController {
     void handleImportAssignments(ActionEvent event) {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Import Folder");
-        chooser.setInitialDirectory(GradePreferences.importDirectory());
+        chooser.setInitialDirectory(Main.preferences.importDirectory());
 
         File selectedDirectory = chooser.showDialog(((Node) event.getTarget()).getScene().getWindow());
         if (selectedDirectory != null) {
-            GradePreferences.setImportDirectory(selectedDirectory.getParentFile());
+            Main.preferences.setImportDirectory(selectedDirectory.getParentFile());
             ImportTask task = new ImportTask(selectedDirectory, selectedOffering, selectedAssignment);
 
             LoggingProgressDialog importDialog = new LoggingProgressDialog(task);

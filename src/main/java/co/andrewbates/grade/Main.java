@@ -1,5 +1,7 @@
 package co.andrewbates.grade;
 
+import java.io.IOException;
+
 import org.controlsfx.dialog.ExceptionDialog;
 
 import co.andrewbates.grade.controller.MainController;
@@ -12,10 +14,12 @@ import javafx.stage.StageStyle;
 
 public class Main extends Application {
     private Stage mainStage;
+    public static GradePreferences preferences;
 
     @Override
-    public void start(final Stage mainStage) {
+    public void start(final Stage mainStage) throws IOException {
         this.mainStage = mainStage;
+        preferences = new GradePreferences(GradePreferences.dataDirectory().resolve("preferences.properties").toFile());
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             handleException(throwable);
@@ -37,7 +41,7 @@ public class Main extends Application {
     }
 
     private void showMainStage() throws Exception {
-        GradePreferences.bindWindow("Main", mainStage);
+        preferences.bindWindow("Main", mainStage);
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/Main.fxml"));
         Scene scene = new Scene(loader.load());
         ((MainController) loader.getController()).setScene(scene);
