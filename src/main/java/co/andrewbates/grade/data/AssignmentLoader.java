@@ -16,7 +16,7 @@ import javafx.collections.ObservableList;
 public class AssignmentLoader extends BaseModelLoader<Assignment> {
     public final String TESTDIR_PATH = "tests";
 
-    Map<UUID, ObservableList<Assignment>> assignments;
+    Map<UUID, ObservableList<Assignment>> assignments = new HashMap<UUID, ObservableList<Assignment>>();
 
     Path dir;
 
@@ -25,10 +25,6 @@ public class AssignmentLoader extends BaseModelLoader<Assignment> {
     }
 
     private void addAssignment(Assignment assignment) {
-        if (assignments == null) {
-            assignments = new HashMap<UUID, ObservableList<Assignment>>();
-        }
-
         if (!assignments.containsKey(assignment.getCourseID())) {
             assignments.put(assignment.getCourseID(), FXCollections.observableArrayList());
         }

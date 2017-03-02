@@ -10,7 +10,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.SplitPane.Divider;
 import javafx.stage.Window;
-import net.harawata.appdirs.AppDirsFactory;
 
 public class GradePreferences {
     public static Preferences system() {
@@ -112,7 +111,6 @@ public class GradePreferences {
     }
 
     public static Path dataDirectory() {
-        // TODO Have version and author pulled from properties
-        return new File(AppDirsFactory.getInstance().getUserDataDir("Grade", "0.0.1", "Andrew Bates")).toPath();
+    	return new File(System.getProperty("user.home")).toPath();
     }
 }
