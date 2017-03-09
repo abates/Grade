@@ -5,7 +5,6 @@ import java.io.File;
 import org.controlsfx.dialog.ExceptionDialog;
 import org.controlsfx.dialog.ProgressDialog;
 
-import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.ImportWizard;
 import co.andrewbates.grade.Main;
 import co.andrewbates.grade.Student;
@@ -120,11 +119,11 @@ public class MainController {
     protected void handleLoadTests(ActionEvent event) {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Import Folder");
-        chooser.setInitialDirectory(GradePreferences.testDirectory());
+        chooser.setInitialDirectory(Main.preferences.testDirectory());
 
         testDirectory = chooser.showDialog(studentList.getScene().getWindow());
         if (testDirectory != null) {
-            GradePreferences.setTestDirectory(testDirectory.getParentFile());
+            Main.preferences.setTestDirectory(testDirectory.getParentFile());
         }
     }
 
@@ -151,7 +150,7 @@ public class MainController {
         criteriaColumn.setCellValueFactory(new PropertyValueFactory<Score, String>("name"));
         scoreColumn.setCellValueFactory(new PropertyValueFactory<Score, String>("score"));
 
-        GradePreferences.bindSplitPane("MainSPlitPane", splitPane);
+        Main.preferences.bindSplitPane("MainSPlitPane", splitPane);
     }
 
 }

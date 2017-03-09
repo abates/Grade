@@ -7,10 +7,12 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
     public static final StudentController students = new StudentController();
+    public static GradePreferences preferences;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        GradePreferences.bindWindow("Main", primaryStage);
+        preferences = new GradePreferences(GradePreferences.dataDirectory().resolve("preferences.properties").toFile());
+        preferences.bindWindow("Main", primaryStage);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/Main.fxml"));
         Scene scene = new Scene(loader.load());

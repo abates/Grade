@@ -1,7 +1,13 @@
 package co.andrewbates.grade;
 
 import java.io.File;
-import java.util.prefs.Preferences;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -11,90 +17,94 @@ import javafx.scene.control.SplitPane.Divider;
 import javafx.stage.Window;
 
 public class GradePreferences {
-    public static File workingDirectory() {
-        String wd = system().get("workingDirectory", System.getProperty("user.dir"));
-        return new File(wd);
+    private File propertyFile;
+    private Properties props;
+    private long lastUpdate;
+
+    public GradePreferences(File inputFile) throws IOException {
+        this.propertyFile = inputFile;
+        props = new Properties();
+
+        try {
+            props.load(new FileInputStream(inputFile));
+        } catch (FileNotFoundException e) {
+            System.err.println("Warning: No preferences file found: " + inputFile.getAbsolutePath());
+        }
     }
 
-    public static void setWorkingDirectory(File file) {
-        system().put("workingDirectory", file.getAbsolutePath());
+    private synchronized void setProperty(String key, String value) {
+        props.setProperty(key, value);
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUpdate > 1000) {
+            try {
+                props.store(new FileOutputStream(propertyFile), null);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            lastUpdate = currentTime;
+        }
     }
 
-    public static File testDirectory() {
-        String wd = system().get("testDirectory", System.getProperty("user.dir"));
-        return new File(wd);
-    }
+    private String getProperty(String key, String defaultValue) {
+        return props.getProperty(key, defaultValue);
+    };
 
-    public static void setTestDirectory(File file) {
-        system().put("testDirectory", file.getAbsolutePath());
-    }
-
-    public static Preferences system() {
-        return root().node("system");
-    }
-
-    public static Preferences ui(String name) {
-        return root().node("ui").node(name);
-    }
-
-    public static Preferences root() {
-        return Preferences.userRoot().node("co.andrewbates.grade");
-    }
-
-    public static void bindWindow(String name, Window window) {
+    public void bindWindow(String name, Window window) {
         window.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                ui(name).node("dimensions").putDouble("width", newValue.doubleValue());
+                setProperty("ui." + name + ".dimensions.width", newValue.toString());
             }
         });
 
         window.heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                ui(name).node("dimensions").putDouble("height", newValue.doubleValue());
+                setProperty("ui." + name + ".dimensions.height", newValue.toString());
             }
         });
 
         window.xProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                ui(name).node("position").putDouble("x", newValue.doubleValue());
+                setProperty("ui." + name + ".position.x", newValue.toString());
             }
         });
 
         window.yProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                ui(name).node("position").putDouble("y", newValue.doubleValue());
+                setProperty("ui." + name + ".position.y", newValue.toString());
             }
         });
 
-        double width = ui(name).node("dimensions").getDouble("width", 640);
+        double width = Double.valueOf(getProperty("ui." + name + ".dimensions.width", "640"));
         if (width > 0) {
             window.setWidth(width);
         }
 
-        double height = ui(name).node("dimensions").getDouble("height", 480);
+        double height = Double.valueOf(getProperty("ui." + name + ".dimensions.height", "640"));
         if (height > 0) {
             window.setHeight(height);
         }
 
-        window.setX(ui(name).node("position").getDouble("x", 1));
-        window.setY(ui(name).node("position").getDouble("y", 1));
+        double x = Double.valueOf(getProperty("ui." + name + "position.x", "1"));
+        double y = Double.valueOf(getProperty("ui." + name + "position.y", "1"));
+        window.setX(x);
+        window.setY(y);
     }
 
-    public static File importDirectory() {
-        String wd = system().get("workingDirectory", System.getProperty("user.dir"));
-        String importDirectory = system().get("importDirectory", wd);
+    public File importDirectory() {
+        String wd = getProperty("system.workingDirectory", System.getProperty("user.dir"));
+        String importDirectory = getProperty("system.importDirectory", wd);
         return new File(importDirectory);
     }
 
-    public static void setImportDirectory(File file) {
-        system().put("importDirectory", file.getAbsolutePath());
+    public void setImportDirectory(File file) {
+        setProperty("system.importDirectory", file.getAbsolutePath());
     }
 
-    public static void bindSplitPane(String name, SplitPane splitPane) {
+    public void bindSplitPane(String name, SplitPane splitPane) {
         splitPane.sceneProperty().addListener((o1, oldScene, scene) -> {
             if (scene != null) {
                 scene.windowProperty().addListener((o2, oldWindow, window) -> {
@@ -104,20 +114,18 @@ public class GradePreferences {
                             if (showing) {
                                 for (int i = 0; i < dividers.size(); i++) {
                                     Divider divider = dividers.get(i);
-                                    final Preferences paneNode = ui(name).node("panes").node("" + i);
+                                    final String path = "ui." + name + ".panes." + i + ".position";
                                     divider.positionProperty().addListener((observable, oldPosition, newPosition) -> {
-                                        paneNode.putDouble("position", newPosition.doubleValue());
+                                        setProperty(path, newPosition.toString());
                                     });
-                                }
 
-                                for (int i = 0; i < dividers.size(); i++) {
-                                    splitPane.setDividerPosition(i, ui(name).node("panes").node("" + i)
-                                            .getDouble("position", splitPane.getDividerPositions()[i]));
+                                    double position = Double.valueOf(getProperty(path, "0.5"));
+                                    splitPane.setDividerPosition(i, position);
                                 }
                             } else {
                                 for (int i = 0; i < dividers.size(); i++) {
-                                    Preferences paneNode = ui(name).node("panes").node("" + i);
-                                    paneNode.putDouble("position", splitPane.getDividerPositions()[i]);
+                                    String path = "ui." + name + ".panes." + i + ".position";
+                                    setProperty(path, "" + splitPane.getDividerPositions()[i]);
                                 }
                             }
                         });
@@ -125,5 +133,26 @@ public class GradePreferences {
                 });
             }
         });
+    }
+
+    public File testDirectory() {
+        String wd = getProperty("testDirectory", System.getProperty("user.dir"));
+        return new File(wd);
+    }
+
+    public void setTestDirectory(File file) {
+        setProperty("testDirectory", file.getAbsolutePath());
+    }
+
+    public static Path dataDirectory() {
+        Path path = new File(System.getProperty("user.home")).toPath().resolve(".grade");
+        if (!Files.exists(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return path;
     }
 }

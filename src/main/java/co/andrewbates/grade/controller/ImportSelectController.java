@@ -2,8 +2,8 @@ package co.andrewbates.grade.controller;
 
 import java.io.File;
 
-import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.ImportWizard;
+import co.andrewbates.grade.Main;
 import co.andrewbates.grade.control.WizardPane.EnteringEvent;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,11 +24,11 @@ public class ImportSelectController {
     protected void handleBrowse(ActionEvent event) {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Import Folder");
-        chooser.setInitialDirectory(GradePreferences.importDirectory());
+        chooser.setInitialDirectory(Main.preferences.importDirectory());
 
         File selectedDirectory = chooser.showDialog(((Node) event.getTarget()).getScene().getWindow());
         if (selectedDirectory != null) {
-            GradePreferences.setImportDirectory(selectedDirectory.getParentFile());
+            Main.preferences.setImportDirectory(selectedDirectory.getParentFile());
             locationField.setText(selectedDirectory.getAbsolutePath());
         }
     }
