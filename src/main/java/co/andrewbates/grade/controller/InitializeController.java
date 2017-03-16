@@ -2,7 +2,7 @@ package co.andrewbates.grade.controller;
 
 import org.controlsfx.dialog.ExceptionDialog;
 
-import co.andrewbates.grade.Main;
+import co.andrewbates.grade.GradePreferences;
 import co.andrewbates.grade.data.Database;
 import co.andrewbates.grade.data.Database.Loader;
 import javafx.animation.PauseTransition;
@@ -58,7 +58,7 @@ public class InitializeController {
     }
 
     public void initialize() {
-        loader = Database.load(Main.preferences.dataDirectory());
+        loader = Database.load(GradePreferences.dataDirectory());
         progressBar.progressProperty().bind(loader.progressProperty());
         progressBar.sceneProperty().addListener((os, osv, nsv) -> {
             if (nsv != null) {
