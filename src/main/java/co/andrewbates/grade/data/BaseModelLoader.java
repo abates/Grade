@@ -139,6 +139,7 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
         if (object.getID() == null) {
             object.setID(UUID.randomUUID());
             list.add(object);
+            index.put(object.getID(), object);
             FXCollections.sort(list);
         }
 
