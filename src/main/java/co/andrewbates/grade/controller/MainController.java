@@ -46,11 +46,6 @@ public class MainController extends BaseController {
     }
 
     @FXML
-    public void handleOpenYear(ActionEvent event) {
-
-    }
-
-    @FXML
     public void handleNewYear(ActionEvent event) throws IOException {
         SchoolYear newYear = new SchoolYear();
         showDialog(yearDialog, newYear, yearController);
