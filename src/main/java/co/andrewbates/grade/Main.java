@@ -26,8 +26,9 @@ public class Main extends Application {
         });
 
         try {
-            showMainStage();
             showSplash();
+
+            showMainStage();
         } catch (Exception ex) {
             handleException(ex);
         }

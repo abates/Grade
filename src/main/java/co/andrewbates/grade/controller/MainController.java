@@ -50,6 +50,7 @@ public class MainController extends BaseController {
         SchoolYear newYear = new SchoolYear();
         showDialog(yearDialog, newYear, yearController);
         if (yearController.completed()) {
+            addYearTab(newYear);
             loadYearTab(newYear);
         }
     }
@@ -70,7 +71,6 @@ public class MainController extends BaseController {
         Platform.exit();
     }
 
-    @SuppressWarnings("unused")
     public void initialize() throws IOException {
         loadTab("Students", viewStudentsMenuItem, "/co/andrewbates/grade/fxml/StudentsTab.fxml");
         loadTab("Courses", viewCoursesMenuItem, "/co/andrewbates/grade/fxml/CoursesTab.fxml");
@@ -83,21 +83,26 @@ public class MainController extends BaseController {
                 int index = change.getFrom();
                 for (SchoolYear year : change.getRemoved()) {
                     yearsMenu.getItems().remove(index);
-                }
-
-                for (SchoolYear year : change.getAddedSubList()) {
-                    final int finalIndex = index;
-                    Platform.runLater(() -> {
-                        CheckMenuItem menuItem = new CheckMenuItem(year.getName());
-                        Tab yearTab = loadTabWithController(year.getName(), menuItem, new SchoolYearTabController(year),
-                                "/co/andrewbates/grade/fxml/SchoolYearTab.fxml");
-                        yearsMenu.getItems().add(finalIndex, menuItem);
-                        yearsTabs.put(year.getName(), yearTab);
-                    });
-                    index++;
+                    Tab yearTab = yearsTabs.get(year.getName());
+                    if (yearTab != null) {
+                        tabPane.getTabs().remove(yearTab);
+                    }
                 }
             }
         });
+
+        for (SchoolYear year : Database.getInstance().schoolYears()) {
+            addYearTab(year);
+        }
+    }
+
+    private void addYearTab(SchoolYear year) {
+        CheckMenuItem menuItem = new CheckMenuItem(year.getName());
+        yearsMenu.getItems().add(menuItem);
+
+        Tab yearTab = loadTabWithController(year.getName(), menuItem, new SchoolYearTabController(year),
+                "/co/andrewbates/grade/fxml/SchoolYearTab.fxml");
+        yearsTabs.put(year.getName(), yearTab);
     }
 
     private Tab loadTabWithController(String name, CheckMenuItem menuItem, Object controller, String path) {

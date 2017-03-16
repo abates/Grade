@@ -25,7 +25,6 @@ public class InitializeController {
     long startTime;
 
     private void start(Stage stage) {
-
         stage.showingProperty().addListener((observable, ov, nv) -> {
             if (nv) {
                 startTime = System.currentTimeMillis();
