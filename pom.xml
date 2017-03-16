@@ -124,7 +124,4 @@
             <id>bintray</id>
         </profile>
     </profiles>
-    <activeProfiles>
-        <activeProfile>bintray</activeProfile>
-    </activeProfiles>
 </project>
