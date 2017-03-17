@@ -100,6 +100,10 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
         };
     }
 
+    public Class<T> modelClass() {
+        return modelClass;
+    }
+
     void setPath(Path path) {
         this.path = path;
     }
