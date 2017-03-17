@@ -2,7 +2,6 @@ package co.andrewbates.grade.data;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.UUID;
 
 import javafx.concurrent.Task;
 
@@ -13,7 +12,7 @@ public interface ModelLoader<T extends Model> {
 
     public void save(T object) throws IOException;
 
-    public T get(UUID uuid);
+    public T get(long uuid);
 
     public Path getPath();
 

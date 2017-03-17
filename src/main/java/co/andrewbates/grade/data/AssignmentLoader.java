@@ -7,16 +7,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import co.andrewbates.grade.model.Assignment;
+import co.andrewbates.grade.model.BaseModel;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class AssignmentLoader extends BaseModelLoader<Assignment> {
     public final String TESTDIR_PATH = "tests";
 
-    Map<UUID, ObservableList<Assignment>> assignments = new HashMap<UUID, ObservableList<Assignment>>();
+    Map<Long, ObservableList<Assignment>> assignments = new HashMap<>();
 
     Path dir;
 
@@ -47,7 +47,7 @@ public class AssignmentLoader extends BaseModelLoader<Assignment> {
 
     @Override
     public void save(Assignment assignment) throws IOException {
-        if (assignment.getID() == null) {
+        if (assignment.getID() == 0) {
             addAssignment(assignment);
         }
         super.save(assignment);

@@ -1,17 +1,19 @@
 package co.andrewbates.grade.model;
 
-import java.util.UUID;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-import co.andrewbates.grade.data.BaseModel;
-
+@Entity
+@Table(name = "assignments")
 public class Assignment extends BaseModel {
-    private UUID courseID;
+    private static final long serialVersionUID = 1L;
+    private long courseID;
 
-    public UUID getCourseID() {
+    public long getCourseID() {
         return courseID;
     }
 
-    public void setCourseID(UUID courseID) {
+    public void setCourseID(long courseID) {
         this.courseID = courseID;
     }
 

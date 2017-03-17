@@ -1,8 +1,5 @@
 package co.andrewbates.grade.model;
 
-import java.util.UUID;
-
-import co.andrewbates.grade.data.BaseModel;
 import co.andrewbates.grade.rubric.Score;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -12,13 +9,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
 public class Submission extends BaseModel {
+    private static final long serialVersionUID = 1L;
+
     public enum Status {
         PASSED, FAILED, NOTGRADED,
     }
 
     private StringProperty studentName = new SimpleStringProperty();
-    private ObjectProperty<UUID> offeringID = new SimpleObjectProperty<>();
-    private ObjectProperty<UUID> assignmentID = new SimpleObjectProperty<>();
+    private ObjectProperty<Long> offeringID = new SimpleObjectProperty<>();
+    private ObjectProperty<Long> assignmentID = new SimpleObjectProperty<>();
     private ObservableMap<String, Score> scores = FXCollections.observableHashMap();
     private StringProperty grade = new SimpleStringProperty();
 
@@ -27,27 +26,27 @@ public class Submission extends BaseModel {
     private int numScores;
     private int passedScores;
 
-    public final ObjectProperty<UUID> offeringIDProperty() {
+    public final ObjectProperty<Long> offeringIDProperty() {
         return this.offeringID;
     }
 
-    public final UUID getOfferingID() {
+    public final long getOfferingID() {
         return this.offeringID.get();
     }
 
-    public final void setOfferingID(final UUID courseID) {
+    public final void setOfferingID(final long courseID) {
         this.offeringID.set(courseID);
     }
 
-    public final ObjectProperty<UUID> assignmentIDProperty() {
+    public final ObjectProperty<Long> assignmentIDProperty() {
         return this.assignmentID;
     }
 
-    public final UUID getAssignmentID() {
+    public final long getAssignmentID() {
         return this.assignmentID.get();
     }
 
-    public final void setAssignmentID(final UUID assignmentID) {
+    public final void setAssignmentID(final long assignmentID) {
         this.assignmentID.set(assignmentID);
     }
 

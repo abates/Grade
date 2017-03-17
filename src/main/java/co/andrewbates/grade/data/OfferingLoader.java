@@ -3,14 +3,13 @@ package co.andrewbates.grade.data;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.UUID;
 
 import co.andrewbates.grade.model.Offering;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class OfferingLoader extends BaseModelLoader<Offering> {
-    HashMap<UUID, ObservableList<Offering>> offerings = new HashMap<UUID, ObservableList<Offering>>();
+    HashMap<Long, ObservableList<Offering>> offerings = new HashMap<Long, ObservableList<Offering>>();
 
     public OfferingLoader() {
         super(Offering.class);
@@ -32,13 +31,13 @@ public class OfferingLoader extends BaseModelLoader<Offering> {
 
     @Override
     public void save(Offering offering) throws IOException {
-        if (offering.getID() == null) {
+        if (offering.getID() == 0) {
             addOffering(offering);
         }
         super.save(offering);
     }
 
-    public ObservableList<Offering> offerings(UUID schoolYearID) {
+    public ObservableList<Offering> offerings(long schoolYearID) {
         ObservableList<Offering> offerings = this.offerings.get(schoolYearID);
         if (offerings == null) {
             offerings = FXCollections.observableArrayList();

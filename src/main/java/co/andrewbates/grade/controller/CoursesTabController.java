@@ -8,10 +8,10 @@ import java.util.Optional;
 
 import co.andrewbates.grade.Main;
 import co.andrewbates.grade.control.FileContextMenu;
-import co.andrewbates.grade.data.BaseModel;
 import co.andrewbates.grade.data.Database;
 import co.andrewbates.grade.dialog.ProgressDialog;
 import co.andrewbates.grade.model.Assignment;
+import co.andrewbates.grade.model.BaseModel;
 import co.andrewbates.grade.model.Course;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;

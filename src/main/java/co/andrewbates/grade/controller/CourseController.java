@@ -1,7 +1,7 @@
 package co.andrewbates.grade.controller;
 
-import co.andrewbates.grade.data.BaseModel;
 import co.andrewbates.grade.data.Model;
+import co.andrewbates.grade.model.BaseModel;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;

@@ -5,7 +5,6 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -170,11 +169,11 @@ public class Database {
         return schoolYearLoader.list();
     }
     
-    public Course getCourse(UUID courseID) {
+    public Course getCourse(long courseID) {
         return courseLoader.get(courseID);
     }
 
-    public SchoolYear getSchoolYear(UUID yearID) {
+    public SchoolYear getSchoolYear(long yearID) {
         return schoolYearLoader.get(yearID);
     }
     
@@ -213,11 +212,11 @@ public class Database {
         return getSubmissionLoader(offering, assignment).load(studentName);
     }
 
-    public Offering getOffering(UUID offeringID) {
+    public Offering getOffering(long offeringID) {
         return offeringLoader.get(offeringID);
     }
 
-    public Assignment getAssignment(UUID assignmentID) {
+    public Assignment getAssignment(long assignmentID) {
         return assignmentLoader.get(assignmentID);
     }
 

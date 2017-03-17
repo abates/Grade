@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
-import java.util.UUID;
 
 import org.hildan.fxgson.FxGson;
 
@@ -27,19 +26,19 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
     private ObservableList<T> list;
     private Class<T> modelClass;
     private Path path;
-    private HashMap<UUID, T> index;
+    private HashMap<Long, T> index;
 
     public BaseModelLoader(Class<T> modelClass) {
         this.modelClass = modelClass;
         this.list = FXCollections.observableArrayList();
-        this.index = new HashMap<UUID, T>();
+        this.index = new HashMap<Long, T>();
     }
 
     protected void initialize(T model) {
 
     }
 
-    public T get(UUID id) {
+    public T get(long id) {
         return index.get(id);
     }
 
@@ -114,7 +113,7 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
 
     @Override
     public Path getPath(T object) {
-        return getPath().resolve(object.getID().toString());
+        return getPath().resolve("" + object.getID());
     }
 
     public void delete(T object) throws IOException {
@@ -140,8 +139,8 @@ public abstract class BaseModelLoader<T extends Model> implements ModelLoader<T>
 
     @Override
     public void save(T object) throws IOException {
-        if (object.getID() == null) {
-            object.setID(UUID.randomUUID());
+        if (object.getID() == 0) {
+            object.setID(System.currentTimeMillis());
             list.add(object);
             index.put(object.getID(), object);
             FXCollections.sort(list);
