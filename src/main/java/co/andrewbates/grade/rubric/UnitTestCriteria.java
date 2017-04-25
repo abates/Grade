@@ -4,7 +4,7 @@ import java.nio.file.Path;
 
 import org.junit.runners.model.InitializationError;
 
-import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.Main;
 import co.andrewbates.grade.model.Submission;
 import co.andrewbates.grade.sandbox.TestResults;
 import co.andrewbates.grade.sandbox.TestSandbox;
@@ -21,7 +21,7 @@ public class UnitTestCriteria implements Criteria {
     public void grade(Submission submission) throws Exception {
         TestSandbox sandbox = null;
         try {
-            sandbox = new TestSandbox(Database.getInstance().getSubmissionPath(submission), testPath);
+            sandbox = new TestSandbox(Main.database.getSubmissionPath(submission), testPath);
             TestResults results = sandbox.runTests();
             int count = results.getTestCount();
             int score = results.getPassedCount();

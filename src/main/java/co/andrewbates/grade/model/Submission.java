@@ -1,5 +1,8 @@
 package co.andrewbates.grade.model;
 
+import java.util.UUID;
+
+import co.andrewbates.grade.data.Info;
 import co.andrewbates.grade.rubric.Score;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -8,6 +11,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
+@Info(path = "submissions")
 public class Submission extends BaseModel {
     private static final long serialVersionUID = 1L;
 
@@ -16,39 +20,17 @@ public class Submission extends BaseModel {
     }
 
     private StringProperty studentName = new SimpleStringProperty();
-    private ObjectProperty<Long> offeringID = new SimpleObjectProperty<>();
-    private ObjectProperty<Long> assignmentID = new SimpleObjectProperty<>();
     private ObservableMap<String, Score> scores = FXCollections.observableHashMap();
     private StringProperty grade = new SimpleStringProperty();
 
     private ObjectProperty<Status> status = new SimpleObjectProperty<>();
 
+    private ObjectProperty<UUID> offeringID = new SimpleObjectProperty<>();
+
+    private ObjectProperty<UUID> assignmentID = new SimpleObjectProperty<>();
+
     private int numScores;
     private int passedScores;
-
-    public final ObjectProperty<Long> offeringIDProperty() {
-        return this.offeringID;
-    }
-
-    public final long getOfferingID() {
-        return this.offeringID.get();
-    }
-
-    public final void setOfferingID(final long courseID) {
-        this.offeringID.set(courseID);
-    }
-
-    public final ObjectProperty<Long> assignmentIDProperty() {
-        return this.assignmentID;
-    }
-
-    public final long getAssignmentID() {
-        return this.assignmentID.get();
-    }
-
-    public final void setAssignmentID(final long assignmentID) {
-        this.assignmentID.set(assignmentID);
-    }
 
     public final StringProperty studentNameProperty() {
         return this.studentName;
@@ -121,4 +103,29 @@ public class Submission extends BaseModel {
         }
         return builder.toString();
     }
+
+    public final ObjectProperty<UUID> assignmentIDProperty() {
+        return this.assignmentID;
+    }
+
+    public final UUID getAssignmentID() {
+        return this.assignmentIDProperty().get();
+    }
+
+    public final void setAssignmentID(final UUID assignmentID) {
+        this.assignmentIDProperty().set(assignmentID);
+    }
+
+    public final ObjectProperty<UUID> offeringIDProperty() {
+        return this.offeringID;
+    }
+
+    public final UUID getOfferingID() {
+        return this.offeringIDProperty().get();
+    }
+
+    public final void setOfferingID(final UUID offeringID) {
+        this.offeringIDProperty().set(offeringID);
+    }
+
 }

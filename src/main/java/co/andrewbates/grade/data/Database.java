@@ -3,14 +3,16 @@ package co.andrewbates.grade.data;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.controlsfx.dialog.ExceptionDialog;
-
+import co.andrewbates.grade.data.DatabaseEventHandler.DatabaseEvent;
 import co.andrewbates.grade.model.Assignment;
 import co.andrewbates.grade.model.Course;
 import co.andrewbates.grade.model.Offering;
@@ -19,207 +21,97 @@ import co.andrewbates.grade.model.Submission;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 
 public class Database {
-    public class Loader extends Task<String> {
-        private Path baseDirectory;
-        private ModelLoader<?>[] loaders;
+    private HashMap<Class<?>, DatabaseEventHandler> eventHandlers = new HashMap<>();
 
-        Loader(Path baseDirectory) {
-            this.baseDirectory = baseDirectory;
-            // @formatter:off
-            this.loaders = new ModelLoader[]{
-                    courseLoader,
-                    schoolYearLoader,
-                    assignmentLoader,
-                    offeringLoader,
-            };
-        }
+    private ModelLoader<Course> courseLoader;
 
-        protected synchronized void addProgress(double amount) {
-            updateProgress(getProgress() + amount/loaders.length, 1.0);
-        }
-        
-        @Override
-        protected String call() throws Exception {
-            System.err.println("Loading from " + baseDirectory);
-            ExecutorService executor = Executors.newFixedThreadPool(5);
-            updateProgress(0.0, loaders.length);
-            for (int i=0; i<loaders.length; i++) {
-                Task<Void> task = loaders[i].loadAll(baseDirectory);
-                task.progressProperty().addListener((o, ov, nv) -> {
-                    addProgress(nv.doubleValue());
-                });
-                
-                task.messageProperty().addListener((o, ov, nv) -> {
-                    updateValue(nv);
-                });
-                
-                task.onFailedProperty().addListener(ev -> {
-                    ExceptionDialog dialog = new ExceptionDialog(task.getException());
-                    dialog.showAndWait();
-                });
-                executor.execute(task);
-            }
-            executor.shutdown();
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            succeeded();
-            return "Done";
-        }
-    }
+    private ModelLoader<SchoolYear> schoolYearLoader;
 
-    private static Database instance;
-    public static Database getInstance() {
-        if (instance == null) {
-            instance = new Database();
-        }
-        return instance;
-    }
-    
-    public static Loader load(Path baseDirectory) {
-        Database instance = getInstance();
-        return instance.new Loader(baseDirectory);
-    }
+    private ModelLoader<Assignment> assignmentLoader;
 
-    private CourseLoader courseLoader;
+    private ModelLoader<Offering> offeringLoader;
 
-    private AssignmentLoader assignmentLoader;
+    private ModelLoader<Submission> submissionLoader;
 
-    private SchoolYearLoader schoolYearLoader;
-
-    private OfferingLoader offeringLoader;
-    
-    private Database() {
-        courseLoader = new CourseLoader();
-        schoolYearLoader = new SchoolYearLoader();
-        assignmentLoader = new AssignmentLoader();
-        offeringLoader = new OfferingLoader();
-    }
-
-    public ObservableList<Assignment> assignments(Course course) {
-        return assignmentLoader.get(course);
-    }
-
-    public ObservableList<Course> courses() {
-        return courseLoader.list();
-    }
-
-    public void delete(Assignment assignment) throws IOException {
-        assignmentLoader.delete(assignment);
-    }
-
-    public void delete(Course course) throws IOException {
-        Iterator<Assignment> assignment = assignments(course).iterator();
-        for (;assignment.hasNext();) {
-            assignment.next();
-            assignment.remove();
-        }
-        courseLoader.delete(course);
-    }
-    
-    public void delete(Offering offering) throws IOException {
-        offeringLoader.delete(offering);
-    }
-
-    public ObservableList<Offering> offerings() {
-        return offeringLoader.list();
-    }
-    
-    public ObservableList<Offering> offerings(SchoolYear schoolYear) {
-        return offeringLoader.offerings(schoolYear.getID());
-    }
-
-    public void save(Assignment assignment) throws IOException {
-        assignmentLoader.save(assignment);
-    }
-
-    public void save(Course course) throws IOException {
-        courseLoader.save(course);
-    }
-    
-    public void save(Submission submission) throws IOException {
-        getSubmissionLoader(submission).save(submission);
-    }
-    
-    public void save(Model model) throws IOException {
-        if (model instanceof Course) {
-            save((Course)model);
-        } else if (model instanceof Assignment) {
-            save((Assignment)model);
-        } else if (model instanceof SchoolYear) {
-            save((SchoolYear)model);
-        } else if (model instanceof Offering) {
-            save((Offering)model);
-        } else if (model instanceof Submission) {
-            save((Submission)model);
-        } else {
-            throw new RuntimeException("Cannot handle type " + model.getClass());
-        }
-    }
-
-    public void save(Offering offering) throws IOException {
-        offeringLoader.save(offering);
-    }
-    
-    public void save(SchoolYear schoolYear) throws IOException {
-        schoolYearLoader.save(schoolYear);
-    }
-
-    public ObservableList<SchoolYear> schoolYears() {
-        return schoolYearLoader.list();
-    }
-    
-    public Course getCourse(long courseID) {
-        return courseLoader.get(courseID);
-    }
-
-    public SchoolYear getSchoolYear(long yearID) {
-        return schoolYearLoader.get(yearID);
-    }
-    
-    public ObservableList<Submission> submissions(Offering offering, Assignment assignment) {
-        SubmissionLoader loader = getSubmissionLoader(offering, assignment);
-        try {
-            new Thread(loader.loadAll()).start();
-        } catch (DataException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        return loader.list();
+    public Database(Path basePath) {
+        courseLoader = new ModelLoader<>(Course.class, basePath);
+        schoolYearLoader = new ModelLoader<>(SchoolYear.class, basePath);
+        assignmentLoader = new ModelLoader<>(Assignment.class, basePath);
+        offeringLoader = new ModelLoader<>(Offering.class, basePath);
+        submissionLoader = new ModelLoader<>(Submission.class, basePath);
     }
 
     public void copyFileToAssignment(File file, Assignment assignment) throws IOException {
-        assignmentLoader.copyFile(file, assignment);
-    }
-
-    private SubmissionLoader getSubmissionLoader(Submission submission) {
-        Offering offering = getOffering(submission.getOfferingID());
-        Assignment assignment = getAssignment(submission.getAssignmentID());
-        return getSubmissionLoader(offering, assignment);
-    }
-    
-    private SubmissionLoader getSubmissionLoader(Offering offering, Assignment assignment) {
-        Path path = offeringLoader.getPath(offering).resolve("assignments").resolve(assignment.getName());
-        return new SubmissionLoader(path);
+        Path testDir = getTestPath(assignment);
+        if (!testDir.toFile().exists()) {
+            testDir.toFile().mkdirs();
+        }
+        Files.copy(file.toPath(), testDir.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
     }
 
     public void copyFileToSubmission(File file, Submission submission) throws IOException {
-        getSubmissionLoader(submission).copyFile(file, submission);
+        Path fileDir = getSubmissionPath(submission);
+        if (!fileDir.toFile().exists()) {
+            fileDir.toFile().mkdirs();
+        }
+        Files.copy(file.toPath(), fileDir.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
     }
 
-    public Submission getSubmission(Offering offering, Assignment assignment, String studentName) throws DataException {
-        return getSubmissionLoader(offering, assignment).load(studentName);
+    public ObservableList<Course> courses() {
+        return courseLoader.all();
     }
 
-    public Offering getOffering(long offeringID) {
-        return offeringLoader.get(offeringID);
+    private void fireEvent(EventType<?> type, Model target) {
+        DatabaseEventHandler handler = eventHandlers.get(target.getClass());
+        if (handler != null) {
+            handler.fire(type, target);
+        }
     }
 
-    public Assignment getAssignment(long assignmentID) {
-        return assignmentLoader.get(assignmentID);
+    public void delete(Model model) throws IOException {
+        if (model instanceof Assignment) {
+            for (Submission submission : getSubmissions((Assignment) model)) {
+                delete(submission);
+            }
+            assignmentLoader.delete((Assignment) model);
+        } else if (model instanceof Course) {
+            courseLoader.delete((Course) model);
+        } else if (model instanceof Offering) {
+            Offering offering = (Offering) model;
+            Course course = courseLoader.get(offering.getCourseID());
+            for (Assignment assignment : getAssignments(course)) {
+                for (Submission submission : getSubmissions(offering, assignment)) {
+                    delete(submission);
+                }
+            }
+            offeringLoader.delete((Offering) model);
+        } else if (model instanceof SchoolYear) {
+            for (Offering offering : getOfferings((SchoolYear) model)) {
+                delete(offering);
+            }
+            schoolYearLoader.delete((SchoolYear) model);
+        } else if (model instanceof Submission) {
+            submissionLoader.delete((Submission) model);
+        } else {
+            throw new RuntimeException("Cannot handle type " + model.getClass());
+        }
+        fireEvent(DatabaseEventHandler.DELETE, model);
     }
 
+    public ObservableList<Assignment> getAssignments(Course course) throws IOException {
+        Stream<Assignment> assignments = assignmentLoader.stream().filter(v -> {
+            return v.getCourseID().equals(course.getID());
+        });
+        return FXCollections.observableArrayList(assignments.collect(Collectors.toList()));
+    }
+
+    public Course getCourse(UUID courseID) throws IOException {
+        return courseLoader.get(courseID);
+    }
 
     ObservableList<File> getJavaFiles(Path path) {
         File[] files = new File[] {};
@@ -233,21 +125,102 @@ public class Database {
         }
         return FXCollections.observableArrayList(files);
     }
-    
-    public ObservableList<File> getTestFiles(Assignment assignment) {
-        
-        return getJavaFiles(getTestPath(assignment));
+
+    public ObservableList<Offering> getOfferings(Course course) throws IOException {
+        Stream<Offering> offerings = offeringLoader.stream().filter(v -> {
+            return v.getCourseID().equals(course.getID());
+        });
+        return FXCollections.observableArrayList(offerings.collect(Collectors.toList()));
     }
 
-    public ObservableList<File> getSubmissionFiles(Submission submission) {
+    public ObservableList<Offering> getOfferings(SchoolYear schoolYear) throws IOException {
+        Stream<Offering> offerings = offeringLoader.stream().filter(v -> {
+            return v.getSchoolYearID().equals(schoolYear.getID());
+        });
+        return FXCollections.observableArrayList(offerings.collect(Collectors.toList()));
+    }
+
+    public SchoolYear getSchoolYear(UUID yearID) throws IOException {
+        return schoolYearLoader.get(yearID);
+    }
+
+    public Submission getSubmission(Offering offering, Assignment assignment, String studentName) throws IOException {
+        Stream<Submission> submissions = submissionLoader.stream().filter(v -> {
+            return v.getOfferingID().equals(offering.getID()) && v.getAssignmentID().equals(assignment.getID())
+                    && v.getStudentName().equals(studentName);
+        });
+        Optional<Submission> o = submissions.findFirst();
+
+        if (o.isPresent()) {
+            return o.get();
+        }
+        return null;
+    }
+
+    public ObservableList<File> getSubmissionFiles(Submission submission) throws IOException {
         return getJavaFiles(getSubmissionPath(submission));
     }
 
-    public Path getTestPath(Assignment assignment) {
+    public Path getSubmissionPath(Submission submission) throws IOException {
+        return submissionLoader.getPath(submission).resolve("files");
+    }
+
+    public ObservableList<Submission> getSubmissions(Assignment assignment) throws IOException {
+        Stream<Submission> submissions = submissionLoader.stream().filter(v -> {
+            return v.getAssignmentID().equals(assignment.getID());
+        });
+
+        return FXCollections.observableArrayList(submissions.collect(Collectors.toList()));
+    }
+
+    public ObservableList<Submission> getSubmissions(Offering offering, Assignment assignment) throws IOException {
+        Stream<Submission> submissions = submissionLoader.stream().filter(v -> {
+            return v.getOfferingID().equals(offering.getID()) && v.getAssignmentID().equals(assignment.getID());
+        });
+
+        return FXCollections.observableArrayList(submissions.collect(Collectors.toList()));
+    }
+
+    public ObservableList<File> getTestFiles(Assignment assignment) throws IOException {
+        return getJavaFiles(getTestPath(assignment));
+    }
+
+    public Path getTestPath(Assignment assignment) throws IOException {
         return assignmentLoader.getPath(assignment).resolve("tests");
     }
 
-    public Path getSubmissionPath(Submission submission) {
-        return getSubmissionLoader(submission).getPath(submission).resolve("files");
+    public Path getTestPath(Submission submission) throws IOException {
+        return getTestPath(assignmentLoader.get(submission.getAssignmentID()));
+    }
+
+    public void addHandler(Class<? extends Model> clazz, EventType<DatabaseEvent> type,
+            EventHandler<DatabaseEvent> handler) {
+        DatabaseEventHandler databaseHandler = eventHandlers.get(type);
+        if (databaseHandler == null) {
+            databaseHandler = new DatabaseEventHandler();
+            eventHandlers.put(clazz, databaseHandler);
+        }
+        databaseHandler.register(type, handler);
+    }
+
+    public void save(Model model) throws IOException {
+        if (model instanceof Assignment) {
+            assignmentLoader.save((Assignment) model);
+        } else if (model instanceof Course) {
+            courseLoader.save((Course) model);
+        } else if (model instanceof Offering) {
+            offeringLoader.save((Offering) model);
+        } else if (model instanceof SchoolYear) {
+            schoolYearLoader.save((SchoolYear) model);
+        } else if (model instanceof Submission) {
+            submissionLoader.save((Submission) model);
+        } else {
+            throw new RuntimeException("Cannot handle type " + model.getClass());
+        }
+        fireEvent(DatabaseEventHandler.SAVE, model);
+    }
+
+    public Task<ObservableList<SchoolYear>> schoolYearsTask() {
+        return schoolYearLoader.allTask();
     }
 }

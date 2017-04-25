@@ -5,9 +5,9 @@ import java.io.IOException;
 
 import co.andrewbates.grade.Main;
 import co.andrewbates.grade.control.FileContextMenu;
-import co.andrewbates.grade.control.FileContextMenu.FileContextEvent;
-import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.dialog.ConfirmationDialog;
 import co.andrewbates.grade.dialog.LoggingProgressDialog;
+import co.andrewbates.grade.dialog.ModelDialog;
 import co.andrewbates.grade.model.Assignment;
 import co.andrewbates.grade.model.Course;
 import co.andrewbates.grade.model.Offering;
@@ -19,6 +19,8 @@ import co.andrewbates.grade.task.ImportTask;
 import de.jensd.fx.glyphs.GlyphIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -29,23 +31,46 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
 
 public class SchoolYearTabController extends BaseController {
-    private SchoolYear schoolYear;
+    private Assignment selectedAssignment;
 
-    public SchoolYearTabController(SchoolYear schoolYear) {
-        this.schoolYear = schoolYear;
-    }
+    private Course selectedCourse;
+
+    private File selectedFile;
+
+    private FileContextMenu fileMenu;
+
+    private Offering selectedOffering;
+
+    private Submission selectedSubmission;
+
+    private SchoolYear schoolYear;
 
     @FXML
     private Button addOfferingButton;
 
     @FXML
+    private Button deleteFileButton;
+
+    @FXML
     private Button deleteOfferingButton;
+
+    @FXML
+    private Button deleteStudentButton;
+
+    @FXML
+    private Button deleteSubmissionButton;
+
+    @FXML
+    private Button gradeAssignmentsButton;
+
+    @FXML
+    private Button importAssignmentsButton;
 
     @FXML
     private TableView<Offering> offeringsTable;
@@ -63,12 +88,6 @@ public class SchoolYearTabController extends BaseController {
     private TableColumn<Assignment, String> assignmentNameColumn;
 
     @FXML
-    private Button importAssignmentsButton;
-
-    @FXML
-    private Button deleteStudentButton;
-
-    @FXML
     private TableView<Submission> submissionsTable;
 
     @FXML
@@ -81,64 +100,113 @@ public class SchoolYearTabController extends BaseController {
     private TableColumn<Submission, GlyphIcon<FontAwesomeIcon>> submissionScoreColumn;
 
     @FXML
-    private Button deleteSubmissionButton;
-
-    @FXML
     private TableView<File> filesTable;
 
     @FXML
     private TableColumn<File, String> fileNameColumn;
 
     @FXML
-    private Button gradeAssignmentsButton;
-
-    @FXML
     private TextArea logArea;
 
-    private Stage offeringDialog;
-    private OfferingController offeringController;
-    private Course selectedCourse;
-    private Assignment selectedAssignment;
-    private Offering selectedOffering;
-
-    private Submission selectedSubmission;
+    public SchoolYearTabController(SchoolYear schoolYear) {
+        this.schoolYear = schoolYear;
+    }
 
     @FXML
     void handleAddOffering(ActionEvent event) throws IOException {
         Offering offering = new Offering();
         offering.setSchoolYearID(schoolYear.getID());
-        showDialog(offeringDialog, offering, offeringController);
+        offering = new ModelDialog<>(offering).showAndWait();
+        if (offering != null) {
+            offeringsTable.getItems().add(offering);
+        }
     }
 
     @FXML
-    void handleAssignmentClicked(MouseEvent event) {
+    void handleAssignmentClicked(MouseEvent event) throws IOException {
         selectedAssignment = assignmentsTable.getSelectionModel().getSelectedItem();
         if (selectedAssignment == null) {
             submissionsTable.setItems(null);
             gradeAssignmentsButton.setDisable(true);
         } else {
-            ObservableList<Submission> submissions = Database.getInstance().submissions(selectedOffering,
-                    selectedAssignment);
+            ObservableList<Submission> submissions = Main.database.getSubmissions(selectedOffering, selectedAssignment);
             submissionsTable.setItems(submissions);
         }
+        filesTable.setItems(null);
+        logArea.setText("");
     }
 
     @FXML
-    void handleOfferingClicked(MouseEvent event) {
-        selectedOffering = offeringsTable.getSelectionModel().getSelectedItem();
-        if (selectedOffering == null) {
-            selectedCourse = null;
-            assignmentsTable.setItems(null);
-            submissionsTable.setItems(null);
-        } else {
-            selectedCourse = Database.getInstance().getCourse(selectedOffering.getCourseID());
-            assignmentsTable.setItems(Database.getInstance().assignments(selectedCourse));
-            submissionsTable.setItems(null);
+    void handleDeleteFile(ActionEvent event) {
+        String message = "Delete " + selectedFile.getName() + "from " + selectedSubmission.getStudentName()
+                + "'s submission?";
+
+        if (ConfirmationDialog.confirmDelete(message)) {
+            fileMenu.delete(selectedFile);
+            filesTable.getItems().remove(selectedFile);
         }
     }
 
     @FXML
-    void handleImportAssignments(ActionEvent event) {
+    void handleDeleteOffering(ActionEvent event) throws IOException {
+        String message = "This will permanently delete the offering and all associated student submissions.  Proceed?";
+        if (ConfirmationDialog.confirmDelete(message)) {
+            Main.database.delete(selectedOffering);
+            offeringsTable.getItems().remove(selectedOffering);
+        }
+    }
+
+    @FXML
+    void handleDeleteSchoolYear(ActionEvent event) throws IOException {
+        String message = schoolYear.getName() + " and all related data (offerings and submissions) will be deleted";
+
+        if (ConfirmationDialog.confirmDelete(message)) {
+            Main.database.delete(schoolYear);
+        }
+    }
+
+    @FXML
+    void handleDeleteSubmission(ActionEvent event) throws IOException {
+        String message = "Permanently delete all files for " + selectedSubmission.getStudentName() + "'s submission?";
+
+        if (ConfirmationDialog.confirmDelete(message)) {
+            Main.database.delete(selectedSubmission);
+            submissionsTable.getItems().remove(selectedSubmission);
+        }
+    }
+
+    @FXML
+    void handleEditSchoolYear(ActionEvent event) throws IOException {
+        new ModelDialog<>(schoolYear).showAndWait();
+    }
+
+    @FXML
+    void handleFileClicked(MouseEvent event) {
+        selectedFile = filesTable.getSelectionModel().getSelectedItem();
+        if (selectedFile != null && event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
+            fileMenu.open(selectedFile);
+        }
+    }
+
+    @FXML
+    void handleGradeAssignments(ActionEvent event) throws IOException {
+        ObservableList<Submission> submissions = submissionsTable.getItems();
+        if (submissions != null && submissions.size() > 0) {
+            DefaultRubric rubric = new DefaultRubric(Main.database.getTestPath(selectedAssignment));
+            GradeAllTask task = new GradeAllTask(submissions, rubric);
+            task.onFailedProperty().addListener(state -> {
+                if (task.getException() != null) {
+                    Main.handleException(task.getException());
+                }
+            });
+            LoggingProgressDialog dialog = new LoggingProgressDialog(task);
+            new Thread(task).start();
+            dialog.showAndWait();
+        }
+    }
+
+    @FXML
+    void handleImportAssignments(ActionEvent event) throws IOException {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Import Folder");
         chooser.setInitialDirectory(Main.preferences.importDirectory());
@@ -152,74 +220,54 @@ public class SchoolYearTabController extends BaseController {
             importDialog.setContentText("Importing test files");
             new Thread(task).start();
             importDialog.showAndWait();
+            submissionsTable.setItems(Main.database.getSubmissions(selectedOffering, selectedAssignment));
         }
     }
 
     @FXML
-    void handleSubmissionClicked(MouseEvent event) {
+    void handleOfferingClicked(MouseEvent event) throws IOException {
+        selectedOffering = offeringsTable.getSelectionModel().getSelectedItem();
+        if (selectedOffering != null) {
+            selectedCourse = Main.database.getCourse(selectedOffering.getCourseID());
+            assignmentsTable.setItems(Main.database.getAssignments(selectedCourse));
+        }
+    }
+
+    @FXML
+    void handleSubmissionClicked(MouseEvent event) throws IOException {
         selectedSubmission = submissionsTable.getSelectionModel().getSelectedItem();
-        if (selectedSubmission == null) {
-            filesTable.setItems(null);
-        } else {
-            filesTable.setItems(Database.getInstance().getSubmissionFiles(selectedSubmission));
+        if (selectedSubmission != null) {
+            filesTable.setItems(Main.database.getSubmissionFiles(selectedSubmission));
             logArea.setText(selectedSubmission.getLog());
         }
     }
 
-    @FXML
-    void handleDeleteOffering(ActionEvent event) {
-
-    }
-
-    @FXML
-    void handleDeleteAssignment(ActionEvent event) {
-
-    }
-
-    @FXML
-    void handleTestFileClicked(MouseEvent event) {
-
-    }
-
-    @FXML
-    void handleGradeAssignments(ActionEvent event) {
-        ObservableList<Submission> submissions = submissionsTable.getItems();
-        if (submissions != null && submissions.size() > 0) {
-            DefaultRubric rubric = new DefaultRubric(Database.getInstance().getTestPath(selectedAssignment));
-            GradeAllTask task = new GradeAllTask(submissions, rubric);
-            task.onFailedProperty().addListener(state -> {
-                if (task.getException() != null) {
-                    Main.handleException(task.getException());
-                }
-            });
-            LoggingProgressDialog dialog = new LoggingProgressDialog(task);
-            new Thread(task).start();
-            dialog.showAndWait();
-        }
-    }
-
-    private void handleDeleteFile(FileContextEvent event) {
-        // TODO Auto-generated method stub
-
-    }
-
-    public void initialize() {
-        offeringController = new OfferingController();
-        offeringDialog = loadStage(offeringController, "/co/andrewbates/grade/fxml/Offering.fxml");
-
-        initializeTable(offeringsTable, deleteOfferingButton);
+    public void initialize() throws IOException {
+        initializeTable(offeringsTable, assignmentsTable, deleteOfferingButton);
         offeringNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
         courseNameColumn.setCellValueFactory(tv -> {
-            return Database.getInstance().getCourse(tv.getValue().getCourseID()).nameProperty();
+            StringProperty name;
+            try {
+                name = Main.database.getCourse(tv.getValue().getCourseID()).nameProperty();
+            } catch (Exception e) {
+                name = new SimpleStringProperty("Error - Unknown");
+                e.printStackTrace();
+            }
+            return name;
         });
 
-        offeringsTable.setItems(Database.getInstance().offerings(schoolYear));
+        offeringsTable.setItems(Main.database.getOfferings(schoolYear));
 
-        initializeTable(assignmentsTable, importAssignmentsButton, gradeAssignmentsButton);
+        initializeTable(assignmentsTable, submissionsTable, importAssignmentsButton, gradeAssignmentsButton);
         assignmentNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        initializeTable(submissionsTable, deleteStudentButton);
+        initializeTable(submissionsTable, filesTable, deleteStudentButton);
+        submissionsTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+            if (nv == null) {
+                logArea.setText("");
+            }
+        });
 
         submissionNameColumn.setCellValueFactory(new PropertyValueFactory<>("studentName"));
         submissionGradedColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
@@ -251,15 +299,17 @@ public class SchoolYearTabController extends BaseController {
                 }
             };
         });
-        FileContextMenu menu = new FileContextMenu();
-        menu.setOnDelete(event -> {
+        fileMenu = new FileContextMenu();
+        fileMenu.setOnDelete(event -> {
             handleDeleteFile(event);
         });
 
-        menu.setOnShowing(event -> {
-            menu.setFile(filesTable.getSelectionModel().getSelectedItem());
+        fileMenu.setOnShowing(event -> {
+            fileMenu.setFile(filesTable.getSelectionModel().getSelectedItem());
         });
-        filesTable.setContextMenu(menu);
+
+        initializeTable(filesTable, null, deleteFileButton);
+        filesTable.setContextMenu(fileMenu);
         fileNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
     }
 }

@@ -4,15 +4,15 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 import co.andrewbates.grade.Main;
 import co.andrewbates.grade.control.FileContextMenu;
-import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.dialog.ConfirmationDialog;
+import co.andrewbates.grade.dialog.ModelDialog;
 import co.andrewbates.grade.dialog.ProgressDialog;
 import co.andrewbates.grade.model.Assignment;
-import co.andrewbates.grade.model.BaseModel;
 import co.andrewbates.grade.model.Course;
+import co.andrewbates.grade.model.Offering;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -21,7 +21,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -29,7 +28,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Stage;
 
 public class CoursesTabController extends BaseController {
     @FXML
@@ -68,45 +66,53 @@ public class CoursesTabController extends BaseController {
     @FXML
     private Button deleteTestFileButton;
 
-    private CourseController courseController;
-    private Stage courseDialog;
-    private AssignmentController assignmentController;
-    private Stage assignmentDialog;
-
     @FXML
     protected void handleAddCourse(ActionEvent event) throws IOException {
-        BaseModel newCourse = new Course();
-        showDialog(courseDialog, newCourse, courseController);
+        Course course = new Course();
+        new ModelDialog<>(course).showAndWait();
     }
 
     @FXML
     protected void handleDeleteCourse(ActionEvent event) throws IOException {
         Course course = courseTable.getSelectionModel().getSelectedItem();
         if (course != null) {
-            Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setTitle("Confirm Delete");
-            alert.setHeaderText("Permanently Delete Course");
-            alert.setContentText("Proceed with deleting " + course.getName() + "?");
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == ButtonType.OK) {
-                Database.getInstance().delete(course);
+            // check if course is in use by an offering
+            List<Offering> offerings = Main.database.getOfferings(course);
+            if (offerings.size() > 0) {
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Course in Use");
+                alert.setContentText("The course is in use by a year/offering and cannot be deleted");
+                alert.showAndWait();
+            } else {
+                String message = "Proceed with deleting " + course.getName() + "?";
+                if (ConfirmationDialog.confirmDelete(message)) {
+                    Main.database.delete(course);
+                }
             }
         }
     }
 
     @FXML
     void handleCourseClicked(MouseEvent event) throws IOException {
-        BaseModel course = courseTable.getSelectionModel().getSelectedItem();
-        if (course != null && event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
-            showDialog(courseDialog, course, courseController);
+        Course course = courseTable.getSelectionModel().getSelectedItem();
+        if (course != null) {
+            testFileTable.setItems(FXCollections.observableArrayList());
+
+            if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
+                new ModelDialog<>(course).showAndWait();
+            }
         }
     }
 
     @FXML
     void handleAssignmentClicked(MouseEvent event) throws IOException {
         Assignment assignment = assignmentTable.getSelectionModel().getSelectedItem();
-        if (assignment != null && event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
-            showDialog(assignmentDialog, assignment, assignmentController);
+        if (assignment != null) {
+            testFileTable.setItems(Main.database.getTestFiles(assignment));
+            if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
+                new ModelDialog<>(assignment).showAndWait();
+            }
         }
     }
 
@@ -120,11 +126,11 @@ public class CoursesTabController extends BaseController {
 
     @FXML
     protected void handleAddAssignment(ActionEvent event) throws IOException {
-        BaseModel course = courseTable.getSelectionModel().getSelectedItem();
+        Course course = courseTable.getSelectionModel().getSelectedItem();
         if (course != null) {
-            Assignment newAssignment = new Assignment();
-            newAssignment.setCourseID(course.getID());
-            showDialog(assignmentDialog, newAssignment, assignmentController);
+            Assignment assignment = new Assignment();
+            assignment.setCourseID(course.getID());
+            new ModelDialog<>(assignment).showAndWait();
         }
     }
 
@@ -132,13 +138,10 @@ public class CoursesTabController extends BaseController {
     protected void handleDeleteAssignment(ActionEvent event) throws IOException {
         Assignment assignment = assignmentTable.getSelectionModel().getSelectedItem();
         if (assignment != null) {
-            Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setTitle("Confirm Delete");
-            alert.setHeaderText("Permanently Delete Assignment");
-            alert.setContentText("Proceed with deleting " + assignment.getName() + "?");
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == ButtonType.OK) {
-                Database.getInstance().delete(assignment);
+            String message = "Deleting " + assignment.getName()
+                    + " will permanently delete all test files and any student submissions for this assignment.  Proceed?";
+            if (ConfirmationDialog.confirmDelete(message)) {
+                Main.database.delete(assignment);
             }
         }
     }
@@ -147,12 +150,8 @@ public class CoursesTabController extends BaseController {
     void handleDeleteTestFile(ActionEvent event) {
         File file = testFileTable.getSelectionModel().getSelectedItem();
         if (file != null) {
-            Alert alert = new Alert(AlertType.CONFIRMATION);
-            alert.setTitle("Confirm Delete");
-            alert.setHeaderText("Permanently Delete File");
-            alert.setContentText("Proceed with deleting " + file.getName() + "?");
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == ButtonType.OK) {
+            String message = "Permanently delete " + file.getName() + "?";
+            if (ConfirmationDialog.confirmDelete(message)) {
                 if (file.delete()) {
                     testFileTable.getItems().remove(file);
                 }
@@ -186,8 +185,7 @@ public class CoursesTabController extends BaseController {
                         if (!found) {
                             testFileTable.getItems().add(file);
                         }
-                        Database.getInstance().copyFileToAssignment(file,
-                                assignmentTable.getSelectionModel().getSelectedItem());
+                        Main.database.copyFileToAssignment(file, assignmentTable.getSelectionModel().getSelectedItem());
                         updateProgress(i, selectedFiles.size());
                     }
                     return null;
@@ -203,31 +201,12 @@ public class CoursesTabController extends BaseController {
     }
 
     public void initialize() {
-        courseController = new CourseController();
-        courseDialog = loadStage(courseController, "/co/andrewbates/grade/fxml/Course.fxml");
-
         courseNameColumn.setCellValueFactory(new PropertyValueFactory<Course, String>("name"));
-        initializeTable(courseTable, deleteCourseButton, addAssignmentButton);
-        courseTable.setItems(Database.getInstance().courses());
-        courseTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
-            if (nv == null) {
-                assignmentTable.setItems(FXCollections.observableArrayList());
-            } else {
-                assignmentTable.setItems(Database.getInstance().assignments(nv));
-            }
-        });
+        initializeTable(courseTable, assignmentTable, deleteCourseButton, addAssignmentButton);
+        courseTable.setItems(Main.database.courses());
 
-        assignmentController = new AssignmentController();
-        assignmentDialog = loadStage(assignmentController, "/co/andrewbates/grade/fxml/Assignment.fxml");
         assignmentNameColumn.setCellValueFactory(new PropertyValueFactory<Assignment, String>("name"));
-        initializeTable(assignmentTable, deleteAssignmentButton, importTestFilesButton);
-        assignmentTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
-            if (nv == null) {
-                testFileTable.setItems(FXCollections.observableArrayList());
-            } else {
-                testFileTable.setItems(Database.getInstance().getTestFiles(nv));
-            }
-        });
+        initializeTable(assignmentTable, testFileTable, deleteAssignmentButton, importTestFilesButton);
 
         FileContextMenu menu = new FileContextMenu();
         menu.setOnDelete(event -> {
@@ -240,6 +219,6 @@ public class CoursesTabController extends BaseController {
 
         testFileTable.setContextMenu(menu);
         testFileNameColumn.setCellValueFactory(new PropertyValueFactory<File, String>("name"));
-        initializeTable(testFileTable, deleteTestFileButton);
+        initializeTable(testFileTable, null, deleteTestFileButton);
     }
 }

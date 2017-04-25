@@ -1,9 +1,11 @@
 package co.andrewbates.grade.data;
 
-public interface Model extends Comparable<Model> {
-    public long getID();
+import java.util.UUID;
 
-    public void setID(long id);
+public interface Model extends Comparable<Model> {
+    public UUID getID();
+
+    public void setID(UUID id);
 
     public String getName();
 }

@@ -2,7 +2,7 @@ package co.andrewbates.grade.task;
 
 import java.util.List;
 
-import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.Main;
 import co.andrewbates.grade.model.Submission;
 import co.andrewbates.grade.rubric.Criteria;
 import co.andrewbates.grade.rubric.Rubric;
@@ -27,7 +27,7 @@ public class GradeTask extends Task<Void> {
             updateProgress((double) i / criteria.size(), 1.0);
         }
         updateProgress(1.0, 1.0);
-        Database.getInstance().save(submission);
+        Main.database.save(submission);
         succeeded();
         return null;
     }

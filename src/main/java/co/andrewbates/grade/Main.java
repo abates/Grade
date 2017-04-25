@@ -5,14 +5,14 @@ import java.io.IOException;
 import org.controlsfx.dialog.ExceptionDialog;
 
 import co.andrewbates.grade.controller.MainController;
+import co.andrewbates.grade.data.Database;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 public class Main extends Application {
+    public static Database database;
     private Stage mainStage;
     public static GradePreferences preferences;
 
@@ -20,14 +20,13 @@ public class Main extends Application {
     public void start(final Stage mainStage) throws IOException {
         this.mainStage = mainStage;
         preferences = new GradePreferences(GradePreferences.dataDirectory().resolve("preferences.properties").toFile());
+        database = new Database(GradePreferences.dataDirectory());
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             handleException(throwable);
         });
 
         try {
-            showSplash();
-
             showMainStage();
         } catch (Exception ex) {
             handleException(ex);
@@ -51,19 +50,6 @@ public class Main extends Application {
         mainStage.toBack();
 
         mainStage.show();
-    }
-
-    private void showSplash() throws Exception {
-        Stage initStage = new Stage(StageStyle.DECORATED);
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/andrewbates/grade/fxml/Splash.fxml"));
-        Scene scene = new Scene(loader.load());
-        initStage.initOwner(mainStage);
-        initStage.initModality(Modality.APPLICATION_MODAL);
-        initStage.initStyle(StageStyle.UNDECORATED);
-        initStage.setScene(scene);
-        initStage.setAlwaysOnTop(true);
-        initStage.showAndWait();
     }
 
     public static void main(String[] args) {

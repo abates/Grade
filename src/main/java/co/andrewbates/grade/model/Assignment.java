@@ -1,23 +1,29 @@
 package co.andrewbates.grade.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import java.util.UUID;
 
-@Entity
-@Table(name = "assignments")
+import co.andrewbates.grade.data.Info;
+import javafx.beans.property.SimpleObjectProperty;
+
+@Info(icon = "FILE_ALT", path = "assignments")
 public class Assignment extends BaseModel {
     private static final long serialVersionUID = 1L;
-    private long courseID;
-
-    public long getCourseID() {
-        return courseID;
-    }
-
-    public void setCourseID(long courseID) {
-        this.courseID = courseID;
-    }
+    private SimpleObjectProperty<UUID> courseID = new SimpleObjectProperty<>();
 
     public String toString() {
         return getName();
     }
+
+    public final SimpleObjectProperty<UUID> courseIDProperty() {
+        return this.courseID;
+    }
+
+    public final UUID getCourseID() {
+        return this.courseIDProperty().get();
+    }
+
+    public final void setCourseID(final UUID courseID) {
+        this.courseIDProperty().set(courseID);
+    }
+
 }

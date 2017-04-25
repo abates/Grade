@@ -135,8 +135,7 @@ public class GradePreferences {
         });
     }
 
-    public static Path dataDirectory() {
-        Path path = new File(System.getProperty("user.home")).toPath().resolve(".grade");
+    private static Path getPath(Path path) {
         if (!Files.exists(path)) {
             try {
                 Files.createDirectories(path);
@@ -145,5 +144,9 @@ public class GradePreferences {
             }
         }
         return path;
+    }
+
+    public static Path dataDirectory() {
+        return getPath(new File(System.getProperty("user.home")).toPath().resolve(".grade"));
     }
 }

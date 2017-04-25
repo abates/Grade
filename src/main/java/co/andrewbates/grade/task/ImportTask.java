@@ -3,8 +3,7 @@ package co.andrewbates.grade.task;
 import java.io.File;
 import java.io.IOException;
 
-import co.andrewbates.grade.data.DataException;
-import co.andrewbates.grade.data.Database;
+import co.andrewbates.grade.Main;
 import co.andrewbates.grade.model.Assignment;
 import co.andrewbates.grade.model.Offering;
 import co.andrewbates.grade.model.Submission;
@@ -23,7 +22,7 @@ public class ImportTask extends Task<Void> {
     }
 
     @Override
-    protected Void call() throws IOException, DataException {
+    protected Void call() throws IOException {
         updateProgress(0, 1.0);
         File[] files = folder.listFiles();
         // TODO: This needs to be updated to use the NIO file walk utilities
@@ -36,12 +35,12 @@ public class ImportTask extends Task<Void> {
                 String studentName = tokens[0];
 
                 Submission submission = getSubmission(studentName);
-                Database.getInstance().copyFileToSubmission(files[i], submission);
+                Main.database.copyFileToSubmission(files[i], submission);
             } else if (files[i].isDirectory()) {
                 String studentName = files[i].getName();
                 Submission submission = getSubmission(studentName);
                 for (File file : files[i].listFiles()) {
-                    Database.getInstance().copyFileToSubmission(file, submission);
+                    Main.database.copyFileToSubmission(file, submission);
                 }
                 log("Imported " + studentName);
             }
@@ -51,8 +50,8 @@ public class ImportTask extends Task<Void> {
         return null;
     }
 
-    private Submission getSubmission(String studentName) throws DataException, IOException {
-        Submission submission = Database.getInstance().getSubmission(offering, assignment, studentName);
+    private Submission getSubmission(String studentName) throws IOException {
+        Submission submission = Main.database.getSubmission(offering, assignment, studentName);
 
         if (submission == null) {
             submission = new Submission();
@@ -60,7 +59,7 @@ public class ImportTask extends Task<Void> {
             submission.setOfferingID(offering.getID());
             submission.setAssignmentID(assignment.getID());
             submission.setStatus(Submission.Status.NOTGRADED);
-            Database.getInstance().save(submission);
+            Main.database.save(submission);
         }
 
         return submission;

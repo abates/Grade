@@ -1,16 +1,18 @@
 package co.andrewbates.grade.controller;
 
-import co.andrewbates.grade.data.Database;
-import co.andrewbates.grade.data.Model;
+import org.controlsfx.validation.ValidationSupport;
+import org.controlsfx.validation.Validator;
+
+import co.andrewbates.grade.Main;
 import co.andrewbates.grade.model.Course;
 import co.andrewbates.grade.model.Offering;
-import javafx.event.ActionEvent;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 
-public class OfferingController extends DialogController {
+public class OfferingController extends ModelController<Offering> {
     private Offering offering;
 
     @FXML
@@ -19,23 +21,16 @@ public class OfferingController extends DialogController {
     @FXML
     private ComboBox<Course> courseList;
 
-    @Override
-    public void setModel(Model model) {
-        offering = (Offering) model;
-        if (offering != null) {
-            courseList.getSelectionModel().select(Database.getInstance().getCourse(offering.getCourseID()));
-        }
-    }
-
-    @Override
-    void handleOK(ActionEvent event) {
-        offering.setCourseID(courseList.getSelectionModel().getSelectedItem().getID());
-        offering.setName(offeringName.getText());
-        super.handleOK(event);
-    }
-
     public void initialize() {
-        courseList.setItems(Database.getInstance().courses());
+        Platform.runLater(() -> {
+            ValidationSupport validationSupport = new ValidationSupport();
+            validationSupport.registerValidator(offeringName, false,
+                    Validator.createEmptyValidator("Name is required"));
+            validationSupport.registerValidator(courseList, false,
+                    Validator.createEmptyValidator("Course must be selected"));
+        });
+
+        courseList.setItems(Main.database.courses());
         courseList.setCellFactory(lv -> {
             return new ListCell<Course>() {
                 @Override
@@ -49,5 +44,25 @@ public class OfferingController extends DialogController {
                 }
             };
         });
+    }
+
+    @Override
+    public boolean isValid() {
+        String name = offeringName.getText();
+        Course course = courseList.getSelectionModel().getSelectedItem();
+        return name != null && course != null && !name.trim().isEmpty();
+    }
+
+    @Override
+    public void setModel(Offering offering) {
+        this.offering = offering;
+
+    }
+
+    @Override
+    public Offering getModel() {
+        offering.setName(offeringName.getText());
+        offering.setCourseID(courseList.getSelectionModel().getSelectedItem().getID());
+        return offering;
     }
 }

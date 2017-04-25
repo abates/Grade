@@ -60,7 +60,7 @@ public class FileContextMenu extends ContextMenu {
         setOnDelete(event -> delete(event.getFile()));
     }
 
-    private void open(File file) {
+    public void open(File file) {
         try {
             Desktop.getDesktop().open(file);
         } catch (IOException ex) {
@@ -72,7 +72,7 @@ public class FileContextMenu extends ContextMenu {
         }
     }
 
-    private void delete(File file) {
+    public void delete(File file) {
         try {
             Files.delete(file.toPath());
         } catch (IOException e) {

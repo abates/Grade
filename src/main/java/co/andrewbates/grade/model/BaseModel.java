@@ -1,6 +1,7 @@
 package co.andrewbates.grade.model;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import co.andrewbates.grade.data.Model;
 import javafx.beans.property.SimpleStringProperty;
@@ -9,13 +10,13 @@ import javafx.beans.property.StringProperty;
 public abstract class BaseModel implements Model, Serializable {
     private static final long serialVersionUID = 1L;
 
-    private long id;
+    private UUID id;
 
-    public long getID() {
+    public UUID getID() {
         return this.id;
     }
 
-    public void setID(long id) {
+    public void setID(UUID id) {
         this.id = id;
     }
 
@@ -38,8 +39,26 @@ public abstract class BaseModel implements Model, Serializable {
     }
 
     @Override
-    public int compareTo(Model o) {
-        return getName().compareTo(((BaseModel) o).getName());
+    public int compareTo(Model obj) {
+        if (this == obj) {
+            return 0;
+        }
+
+        if (obj == null) {
+            return -1;
+        }
+
+        BaseModel other = (BaseModel) obj;
+
+        if (getName() == null && other.getName() == null) {
+            return 0;
+        }
+
+        if (getName() == null && other.getName() != null) {
+            return 1;
+        }
+
+        return getName().compareTo(other.getName());
     }
 
     @Override
