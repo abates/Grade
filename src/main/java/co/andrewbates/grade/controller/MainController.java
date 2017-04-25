@@ -75,12 +75,17 @@ public class MainController extends BaseController {
             SchoolYear year = (SchoolYear) event.getModel();
             for (MenuItem item : yearsMenu.getItems()) {
                 CheckMenuItem checkItem = (CheckMenuItem) item;
-                if (checkItem.getText() == year.getName() || checkItem.getText().equals(year.getName())) {
-                    yearsMenu.getItems().remove(checkItem);
-                    if (checkItem.isSelected()) {
-                        tabPane.getTabs().remove(checkItem.getUserData());
-                    }
-                    break;
+                Tab tab = (Tab) checkItem.getUserData();
+                Object o = tab.getUserData();
+                if (o instanceof SchoolYear) {
+                	SchoolYear y = (SchoolYear)o;
+	                if (y.getID().equals(year.getID())) {
+	                    yearsMenu.getItems().remove(checkItem);
+	                    if (checkItem.isSelected()) {
+	                        tabPane.getTabs().remove(tab);
+	                    }
+	                    break;
+	                }
                 }
             }
         });
@@ -91,7 +96,7 @@ public class MainController extends BaseController {
 
         yearsMenu.getItems().add(menuItem);
 
-        loadTabWithController(year.getName(), menuItem, new SchoolYearTabController(year),
+        Tab tab = loadTabWithController(year.getName(), menuItem, new SchoolYearTabController(year),
                 "/co/andrewbates/grade/fxml/SchoolYearTab.fxml");
 
         year.nameProperty().addListener((o, ov, nv) -> {
@@ -99,14 +104,16 @@ public class MainController extends BaseController {
             Tab yearTab = (Tab) menuItem.getUserData();
             yearTab.setText(nv);
         });
+        
+        tab.setUserData(year);
 
         return menuItem;
     }
 
-    private void loadTabWithController(String name, CheckMenuItem menuItem, Object controller, String path) {
+    private Tab loadTabWithController(String name, CheckMenuItem menuItem, Object controller, String path) {
+        Tab tab = new Tab(name);
         menuItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
-                Tab tab = new Tab(name);
                 menuItem.setUserData(tab);
                 FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
                 if (controller != null) {
@@ -129,6 +136,7 @@ public class MainController extends BaseController {
                 tabPane.getTabs().remove((Tab) menuItem.getUserData());
             }
         });
+        return tab;
     }
 
     private void loadTab(String name, CheckMenuItem menuItem, String path) {
