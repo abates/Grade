@@ -280,6 +280,7 @@ public class SchoolYearTabController extends BaseController {
                     super.updateItem(status, empty);
                     if (status == null || empty) {
                         setText("");
+                        setGraphic(null);
                     } else {
                         GlyphIcon<FontAwesomeIcon> icon = null;
                         switch (status) {

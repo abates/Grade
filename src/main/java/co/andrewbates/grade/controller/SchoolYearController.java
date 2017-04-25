@@ -1,10 +1,8 @@
 package co.andrewbates.grade.controller;
 
-import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 
 import co.andrewbates.grade.model.SchoolYear;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 
@@ -15,15 +13,9 @@ public class SchoolYearController extends ModelController<SchoolYear> {
     private SchoolYear schoolYear;
 
     @Override
-    public void setModel(SchoolYear model) {
-        this.schoolYear = (SchoolYear) model;
+    public void setModel(SchoolYear schoolYear) {
+        this.schoolYear = schoolYear;
         yearName.setText(schoolYear.getName());
-    }
-
-    @Override
-    public boolean isValid() {
-        String name = yearName.getText();
-        return name != null && !name.trim().isEmpty();
     }
 
     @Override
@@ -33,9 +25,6 @@ public class SchoolYearController extends ModelController<SchoolYear> {
     }
 
     public void initialize() {
-        Platform.runLater(() -> {
-            ValidationSupport validationSupport = new ValidationSupport();
-            validationSupport.registerValidator(yearName, false, Validator.createEmptyValidator("Name is required"));
-        });
+        registerValidator(yearName, Validator.createEmptyValidator("Name is required"));
     }
 }

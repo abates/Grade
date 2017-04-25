@@ -48,13 +48,8 @@ public class MainController extends BaseController {
         SchoolYear schoolYear = new ModelDialog<>(new SchoolYear()).showAndWait();
         if (schoolYear != null) {
             schoolYears.add(schoolYear);
-            addYearTab(schoolYear);
-            int index = yearsMenu.getItems().indexOf(schoolYear.getName());
-            if (index >= 0) {
-                CheckMenuItem menuItem = (CheckMenuItem) yearsMenu.getItems().get(index);
-                menuItem.setSelected(true);
-                tabPane.getTabs().add((Tab) menuItem.getUserData());
-            }
+            CheckMenuItem menuItem = addYearTab(schoolYear);
+            menuItem.setSelected(true);
         }
     }
 
@@ -80,7 +75,7 @@ public class MainController extends BaseController {
             SchoolYear year = (SchoolYear) event.getModel();
             for (MenuItem item : yearsMenu.getItems()) {
                 CheckMenuItem checkItem = (CheckMenuItem) item;
-                if (checkItem.getText().equals(year.getName())) {
+                if (checkItem.getText() == year.getName() || checkItem.getText().equals(year.getName())) {
                     yearsMenu.getItems().remove(checkItem);
                     if (checkItem.isSelected()) {
                         tabPane.getTabs().remove(checkItem.getUserData());
@@ -88,11 +83,10 @@ public class MainController extends BaseController {
                     break;
                 }
             }
-
         });
     }
 
-    private void addYearTab(SchoolYear year) {
+    private CheckMenuItem addYearTab(SchoolYear year) {
         final CheckMenuItem menuItem = new CheckMenuItem(year.getName());
 
         yearsMenu.getItems().add(menuItem);
@@ -105,6 +99,8 @@ public class MainController extends BaseController {
             Tab yearTab = (Tab) menuItem.getUserData();
             yearTab.setText(nv);
         });
+
+        return menuItem;
     }
 
     private void loadTabWithController(String name, CheckMenuItem menuItem, Object controller, String path) {

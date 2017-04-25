@@ -1,10 +1,8 @@
 package co.andrewbates.grade.controller;
 
-import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 
 import co.andrewbates.grade.model.Assignment;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 
@@ -13,12 +11,6 @@ public class AssignmentController extends ModelController<Assignment> {
     TextField assignmentName;
 
     private Assignment assignment;
-
-    @Override
-    public boolean isValid() {
-        String name = assignmentName.getText();
-        return name != null && !name.trim().isEmpty();
-    }
 
     @Override
     public void setModel(Assignment assignment) {
@@ -33,10 +25,6 @@ public class AssignmentController extends ModelController<Assignment> {
     }
 
     public void initialize() {
-        Platform.runLater(() -> {
-            ValidationSupport validationSupport = new ValidationSupport();
-            validationSupport.registerValidator(assignmentName, false,
-                    Validator.createEmptyValidator("Name is required"));
-        });
+        registerValidator(assignmentName, Validator.createEmptyValidator("Name is required"));
     }
 }

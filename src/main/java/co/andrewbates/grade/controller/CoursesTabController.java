@@ -68,8 +68,10 @@ public class CoursesTabController extends BaseController {
 
     @FXML
     protected void handleAddCourse(ActionEvent event) throws IOException {
-        Course course = new Course();
-        new ModelDialog<>(course).showAndWait();
+        Course course = new ModelDialog<>(new Course()).showAndWait();
+        if (course != null) {
+            courseTable.getItems().add(course);
+        }
     }
 
     @FXML
@@ -88,6 +90,7 @@ public class CoursesTabController extends BaseController {
                 String message = "Proceed with deleting " + course.getName() + "?";
                 if (ConfirmationDialog.confirmDelete(message)) {
                     Main.database.delete(course);
+                    courseTable.getItems().remove(course);
                 }
             }
         }
@@ -97,6 +100,7 @@ public class CoursesTabController extends BaseController {
     void handleCourseClicked(MouseEvent event) throws IOException {
         Course course = courseTable.getSelectionModel().getSelectedItem();
         if (course != null) {
+            assignmentTable.setItems(Main.database.getAssignments(course));
             testFileTable.setItems(FXCollections.observableArrayList());
 
             if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
@@ -130,7 +134,10 @@ public class CoursesTabController extends BaseController {
         if (course != null) {
             Assignment assignment = new Assignment();
             assignment.setCourseID(course.getID());
-            new ModelDialog<>(assignment).showAndWait();
+            assignment = new ModelDialog<>(assignment).showAndWait();
+            if (assignment != null) {
+                assignmentTable.setItems(Main.database.getAssignments(course));
+            }
         }
     }
 
@@ -142,6 +149,7 @@ public class CoursesTabController extends BaseController {
                     + " will permanently delete all test files and any student submissions for this assignment.  Proceed?";
             if (ConfirmationDialog.confirmDelete(message)) {
                 Main.database.delete(assignment);
+                assignmentTable.getItems().remove(assignment);
             }
         }
     }

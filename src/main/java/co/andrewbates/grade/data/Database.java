@@ -65,7 +65,7 @@ public class Database {
         return courseLoader.all();
     }
 
-    private void fireEvent(EventType<?> type, Model target) {
+    protected void fireEvent(EventType<?> type, Model target) {
         DatabaseEventHandler handler = eventHandlers.get(target.getClass());
         if (handler != null) {
             handler.fire(type, target);
@@ -99,7 +99,6 @@ public class Database {
         } else {
             throw new RuntimeException("Cannot handle type " + model.getClass());
         }
-        fireEvent(DatabaseEventHandler.DELETE, model);
     }
 
     public ObservableList<Assignment> getAssignments(Course course) throws IOException {
@@ -217,7 +216,6 @@ public class Database {
         } else {
             throw new RuntimeException("Cannot handle type " + model.getClass());
         }
-        fireEvent(DatabaseEventHandler.SAVE, model);
     }
 
     public Task<ObservableList<SchoolYear>> schoolYearsTask() {

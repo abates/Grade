@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
+import co.andrewbates.grade.Main;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -70,7 +71,7 @@ public class ModelLoader<T extends Model> {
         T model = null;
         Gson gson = FxGson.create();
         try {
-        	FileReader reader = new FileReader(file);
+            FileReader reader = new FileReader(file);
             model = gson.fromJson(reader, modelClass);
             reader.close();
         } catch (JsonSyntaxException | JsonIOException | FileNotFoundException e) {
@@ -78,7 +79,7 @@ public class ModelLoader<T extends Model> {
             System.err.println("Failed parsing " + file);
             e.printStackTrace(System.err);
         } catch (IOException e) {
-        	// we don't care if close() caused an IOException
+            // we don't care if close() caused an IOException
         }
         return model;
     }
@@ -130,6 +131,7 @@ public class ModelLoader<T extends Model> {
                 return FileVisitResult.CONTINUE;
             }
         });
+        Main.database.fireEvent(DatabaseEventHandler.DELETE, object);
     }
 
     public Stream<T> stream() throws IOException {
@@ -151,6 +153,7 @@ public class ModelLoader<T extends Model> {
 
     public void save(T object) throws IOException {
         if (object.getID() == null) {
+            Main.database.fireEvent(DatabaseEventHandler.CREATE, object);
             object.setID(UUID.randomUUID());
         }
 
@@ -164,5 +167,6 @@ public class ModelLoader<T extends Model> {
         FileWriter writer = new FileWriter(file);
         writer.write(gson.toJson(object));
         writer.close();
+        Main.database.fireEvent(DatabaseEventHandler.SAVE, object);
     }
 }

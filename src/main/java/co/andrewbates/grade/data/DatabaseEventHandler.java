@@ -10,6 +10,7 @@ import javafx.event.EventType;
 
 public class DatabaseEventHandler {
     public static final EventType<DatabaseEvent> DELETE = new EventType<>(ActionEvent.ACTION, "DeleteModel");
+    public static final EventType<DatabaseEvent> CREATE = new EventType<>(ActionEvent.ACTION, "CreateModel");
     public static final EventType<DatabaseEvent> SAVE = new EventType<>(ActionEvent.ACTION, "SaveModel");
 
     public static class DatabaseEvent extends ActionEvent {
@@ -44,9 +45,9 @@ public class DatabaseEventHandler {
         DatabaseEvent event = new DatabaseEvent(target);
         List<EventHandler<DatabaseEvent>> h = handlers.get(type);
         if (h != null) {
-	        for (EventHandler<DatabaseEvent> handler : h) {
-	            handler.handle(event);
-	        }
+            for (EventHandler<DatabaseEvent> handler : h) {
+                handler.handle(event);
+            }
         }
     }
 
