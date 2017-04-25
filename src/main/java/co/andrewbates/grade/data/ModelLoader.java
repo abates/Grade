@@ -70,11 +70,15 @@ public class ModelLoader<T extends Model> {
         T model = null;
         Gson gson = FxGson.create();
         try {
-            model = gson.fromJson(new FileReader(file), modelClass);
+        	FileReader reader = new FileReader(file);
+            model = gson.fromJson(reader, modelClass);
+            reader.close();
         } catch (JsonSyntaxException | JsonIOException | FileNotFoundException e) {
             // TODO this needs to throw something
             System.err.println("Failed parsing " + file);
             e.printStackTrace(System.err);
+        } catch (IOException e) {
+        	// we don't care if close() caused an IOException
         }
         return model;
     }

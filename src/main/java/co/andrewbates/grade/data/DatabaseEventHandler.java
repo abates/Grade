@@ -43,8 +43,10 @@ public class DatabaseEventHandler {
     public void fire(EventType<?> type, Model target) {
         DatabaseEvent event = new DatabaseEvent(target);
         List<EventHandler<DatabaseEvent>> h = handlers.get(type);
-        for (EventHandler<DatabaseEvent> handler : h) {
-            handler.handle(event);
+        if (h != null) {
+	        for (EventHandler<DatabaseEvent> handler : h) {
+	            handler.handle(event);
+	        }
         }
     }
 
