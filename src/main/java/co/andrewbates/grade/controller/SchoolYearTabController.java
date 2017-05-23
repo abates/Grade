@@ -213,6 +213,7 @@ public class SchoolYearTabController extends BaseController {
 
         File selectedDirectory = chooser.showDialog(((Node) event.getTarget()).getScene().getWindow());
         if (selectedDirectory != null) {
+            Main.preferences.setImportDirectory(selectedDirectory);
             Main.preferences.setImportDirectory(selectedDirectory.getParentFile());
             ImportTask task = new ImportTask(selectedDirectory, selectedOffering, selectedAssignment);
 

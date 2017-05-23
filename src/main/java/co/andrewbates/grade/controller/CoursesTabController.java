@@ -176,6 +176,7 @@ public class CoursesTabController extends BaseController {
 
         List<File> selectedFiles = chooser.showOpenMultipleDialog(((Node) event.getTarget()).getScene().getWindow());
         if (selectedFiles != null && !selectedFiles.isEmpty()) {
+            Main.preferences.setImportDirectory(selectedFiles.get(0).getParentFile());
             Task<Void> task = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
