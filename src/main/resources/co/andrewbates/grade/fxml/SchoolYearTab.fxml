@@ -108,6 +108,11 @@
                               <FontAwesomeIconView glyphName="TRASH" />
                            </graphic>
                         </Button>
+                        <Button fx:id="deleteAllStudentsButton" mnemonicParsing="false" onAction="#handleDeleteAllSubmissions">
+                           <graphic>
+                              <FontAwesomeIconView glyphName="BOMB" />
+                           </graphic>
+                        </Button>
                         <Button fx:id="importAssignmentsButton" mnemonicParsing="false" onAction="#handleImportAssignments">
                            <graphic>
                               <FontAwesomeIconView glyphName="DOWNLOAD" />

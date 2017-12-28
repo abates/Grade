@@ -64,6 +64,9 @@ public class SchoolYearTabController extends BaseController {
     private Button deleteStudentButton;
 
     @FXML
+    private Button deleteAllStudentsButton;
+
+    @FXML
     private Button deleteSubmissionButton;
 
     @FXML
@@ -176,6 +179,18 @@ public class SchoolYearTabController extends BaseController {
     }
 
     @FXML
+    void handleDeleteAllSubmissions(ActionEvent event) throws IOException {
+        String message = "Permanently delete all files for for all submissions?";
+
+        if (ConfirmationDialog.confirmDelete(message)) {
+            for(Submission submission : submissionsTable.getItems()) {
+                Main.database.delete(submission);
+            }
+            submissionsTable.getItems().clear();
+        }
+    }
+
+    @FXML
     void handleEditSchoolYear(ActionEvent event) throws IOException {
         new ModelDialog<>(schoolYear).showAndWait();
     }
@@ -263,7 +278,8 @@ public class SchoolYearTabController extends BaseController {
         initializeTable(assignmentsTable, submissionsTable, importAssignmentsButton, gradeAssignmentsButton);
         assignmentNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        initializeTable(submissionsTable, filesTable, deleteStudentButton);
+        initializeTable(submissionsTable, filesTable, deleteStudentButton, deleteAllStudentsButton);
+        deleteAllStudentsButton.setDisable(false);
         submissionsTable.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
             if (nv == null) {
                 logArea.setText("");
